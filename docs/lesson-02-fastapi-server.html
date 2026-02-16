@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บทที่ 2: FastAPI Server | IoT Workshop</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #2563eb;
+            --accent: #f59e0b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        header .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .lesson-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--bg-card);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* Main Content */
+        main {
+            padding: 3rem 0;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: var(--secondary);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--accent);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(37, 99, 235, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-code);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-lang {
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .inline-code {
+            background: var(--bg-code);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent);
+        }
+
+        /* Step */
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        /* List */
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        /* Checklist */
+        .checklist {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .checklist li {
+            list-style: none;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(16, 185, 129, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .checklist li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .step {
+                flex-direction: column;
+            }
+        }
+
+        /* Icon */
+        .icon {
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="lesson-badge">บทที่ 2 จาก 3</div>
+            <h1><span class="icon">🖥️</span> FastAPI Server</h1>
+            <p class="subtitle">สร้าง REST API Server บน Raspberry Pi ด้วย FastAPI</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="#overview">ภาพรวม</a></li>
+                <li><a href="#prerequisites">เตรียมความพร้อม</a></li>
+                <li><a href="#setup">ติดตั้ง FastAPI</a></li>
+                <li><a href="#create-api">สร้าง API</a></li>
+                <li><a href="#run-server">รัน Server</a></li>
+                <li><a href="#test">ทดสอบ API</a></li>
+                <li><a href="#code-explanation">อธิบายโค้ด</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2><span class="icon">🎯</span> เป้าหมายของบทนี้</h2>
+            <div class="card">
+                <p>หลังจากเรียนรู้พื้นฐาน HTTP, REST API และ JSON แล้ว ในบทนี้เราจะ:</p>
+                <ol>
+                    <li><strong>ติดตั้ง FastAPI</strong> และ Uvicorn บน Raspberry Pi</li>
+                    <li><strong>สร้าง REST API Server</strong> ที่รับข้อมูลจาก IoT Device</li>
+                    <li><strong>ใช้ Pydantic</strong> สำหรับ Data Validation</li>
+                    <li><strong>ทดสอบ API</strong> ด้วย Swagger UI (/docs)</li>
+                    <li><strong>เตรียมพร้อม</strong> สำหรับรับข้อมูลจาก ESP32</li>
+                </ol>
+            </div>
+
+            <div class="info-box">
+                <strong>💡 ทำไมต้องใช้ FastAPI?</strong>
+                <ul>
+                    <li>⚡ <strong>รวดเร็ว</strong> - Performance เทียบเท่า Node.js และ Go</li>
+                    <li>📝 <strong>ง่ายต่อการใช้</strong> - เขียนโค้ดน้อย ได้ผลมาก</li>
+                    <li>✅ <strong>Auto Validation</strong> - ตรวจสอบข้อมูลอัตโนมัติด้วย Pydantic</li>
+                    <li>📚 <strong>Auto Documentation</strong> - สร้าง API docs ให้อัตโนมัติ</li>
+                    <li>🔄 <strong>Async Support</strong> - รองรับการทำงานแบบ Asynchronous</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Prerequisites Section -->
+        <section id="prerequisites">
+            <h2><span class="icon">📋</span> เตรียมความพร้อมก่อนเริ่ม</h2>
+            
+            <h3>ฮาร์ดแวร์และซอฟต์แวร์</h3>
+            <div class="checklist">
+                <ul>
+                    <li>Raspberry Pi (รุ่น 4 หรือ 5) พร้อม OS ติดตั้งแล้ว</li>
+                    <li>เชื่อมต่อ Wi-Fi หรือ Ethernet แล้ว</li>
+                    <li>Python 3.8+ (ตรวจสอบด้วย <code>python3 --version</code>)</li>
+                    <li>มีสิทธิ์ sudo สำหรับติดตั้งแพ็คเกจ</li>
+                </ul>
+            </div>
+
+            <h3>ตรวจสอบ Python Version</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                </div>
+                <pre><code>python3 --version</code></pre>
+            </div>
+            <div class="success-box">
+                <strong>ผลลัพธ์ที่คาดหวัง:</strong> Python 3.8 ขึ้นไป (เช่น Python 3.11.2)
+            </div>
+
+            <h3>หา IP Address ของ Raspberry Pi</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                </div>
+                <pre><code>hostname -I</code></pre>
+            </div>
+            <div class="info-box">
+                <strong>บันทึก IP นี้ไว้!</strong> จะใช้ตอน config ESP32 ในบทต่อไป
+                <br>ตัวอย่าง: <code>192.168.1.50</code>
+            </div>
+        </section>
+
+        <!-- Setup Section -->
+        <section id="setup">
+            <h2><span class="icon">⚙️</span> ติดตั้ง FastAPI และ Uvicorn</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>อัปเดต Package List</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                        </div>
+                        <pre><code>sudo apt update</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>ติดตั้ง python3-venv (สำหรับสร้าง Virtual Environment)</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                        </div>
+                        <pre><code>sudo apt install -y python3-venv</code></pre>
+                    </div>
+                    <div class="warning-box">
+                        <strong>⚠️ ทำไมต้องใช้ Virtual Environment?</strong>
+                        <p>เพื่อแยก dependencies ของแต่ละโปรเจกต์ออกจากกัน ไม่ให้ไปกระทบระบบหลัก</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>สร้างโฟลเดอร์สำหรับโปรเจกต์</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                        </div>
+                        <pre><code>mkdir -p ~/iot-server && cd ~/iot-server</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>สร้าง Virtual Environment</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                        </div>
+                        <pre><code>python3 -m venv .venv</code></pre>
+                    </div>
+                    <p>คำสั่งนี้จะสร้างโฟลเดอร์ <code>.venv</code> ที่เก็บ Python environment แยกต่างหาก</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>เปิดใช้งาน Virtual Environment</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                        </div>
+                        <pre><code>source .venv/bin/activate</code></pre>
+                    </div>
+                    <div class="success-box">
+                        <strong>✅ สำเร็จ!</strong> คุณจะเห็น <code>(.venv)</code> ปรากฏหน้า prompt
+                        <div class="code-block" style="margin-top: 0.5rem;">
+                            <pre><code>(.venv) pi@raspberrypi:~/iot-server $</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <h3>ติดตั้ง FastAPI และ Uvicorn</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                        </div>
+                        <pre><code>pip install fastapi uvicorn</code></pre>
+                    </div>
+                    <div class="info-box">
+                        <strong>📦 Package ที่ติดตั้ง:</strong>
+                        <ul>
+                            <li><strong>fastapi</strong> - Web framework สำหรับสร้าง API</li>
+                            <li><strong>uvicorn</strong> - ASGI server สำหรับรัน FastAPI</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <h3>ตรวจสอบการติดตั้ง</h3>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Bash</span>
+                        </div>
+                        <pre><code>python -c "import fastapi; print(fastapi.__version__)"
+python -c "import uvicorn; print(uvicorn.__version__)"</code></pre>
+                    </div>
+                    <p>ถ้าติดตั้งสำเร็จ จะแสดง version ของแต่ละ package</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Create API Section -->
+        <section id="create-api">
+            <h2><span class="icon">💻</span> สร้าง FastAPI Server</h2>
+            
+            <h3>สร้างไฟล์ app.py</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                </div>
+                <pre><code>nano app.py</code></pre>
+            </div>
+            <p>หรือใช้ text editor ที่คุณถนัด (vim, code, etc.)</p>
+
+            <h3>โค้ดเต็ม app.py (พร้อมคอมเมนต์อธิบาย)</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                </div>
+                <pre><code>from fastapi import FastAPI, HTTPException              # นำเข้า FastAPI และ HTTPException
+from pydantic import BaseModel                           # สำหรับกำหนดโครงสร้างข้อมูล
+from typing import Optional, Dict, Any                   # Type hints
+from datetime import datetime                            # จัดการเวลา
+
+# สร้าง FastAPI app instance
+app = FastAPI(title="RPi IoT Server (HTTP)")
+
+# เก็บข้อมูลล่าสุดไว้ในหน่วยความจำ (ง่ายสุดสำหรับ Workshop)
+LATEST: Optional[Dict[str, Any]] = None
+
+# กำหนดโครงสร้างข้อมูลที่รับเข้ามาด้วย Pydantic
+class SensorPayload(BaseModel):
+    device_id: str                                       # รหัสอุปกรณ์ (เช่น "esp32-01")
+    temp: float                                          # อุณหภูมิ
+    hum: float                                           # ความชื้น
+    source: Optional[str] = "unknown"                    # แหล่งที่มา (virtual/bme280/...)
+    ts: Optional[str] = None                             # Timestamp (ถ้าไม่ส่งมา server จะใส่เอง)
+
+# Endpoint รับข้อมูลจาก IoT Device (POST)
+@app.post("/api/data")
+def receive_data(payload: SensorPayload):
+    global LATEST                                        # ใช้ตัวแปร global
+    
+    # ถ้า client ไม่ส่ง timestamp มา ให้ server ใส่เวลาปัจจุบัน
+    ts = payload.ts or datetime.utcnow().isoformat()
+    
+    # เก็บข้อมูลล่าสุด
+    LATEST = {
+        "device_id": payload.device_id,
+        "temp": payload.temp,
+        "hum": payload.hum,
+        "source": payload.source,
+        "ts": ts,
+    }
+    
+    # แสดงผลใน console (สำหรับ debug)
+    print("[RECV]", LATEST)
+    
+    # ส่ง response กลับไป
+    return {"ok": True, "latest": LATEST}
+
+# Endpoint ดูข้อมูลล่าสุด (GET)
+@app.get("/api/latest")
+def get_latest():
+    if LATEST is None:                                   # ถ้ายังไม่มีข้อมูล
+        raise HTTPException(status_code=404, detail="No data yet")
+    return LATEST                                        # คืนข้อมูลล่าสุด
+
+# Endpoint หน้าแรก (GET)
+@app.get("/")
+def read_root():
+    return {
+        "message": "RPi IoT Server is running!",
+        "endpoints": {
+            "POST /api/data": "Send sensor data",
+            "GET /api/latest": "Get latest data",
+            "GET /docs": "API documentation"
+        }
+    }</code></pre>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ บันทึกไฟล์</strong>
+                <p>ถ้าใช้ nano: กด <code>Ctrl+O</code> (Save), <code>Enter</code>, แล้ว <code>Ctrl+X</code> (Exit)</p>
+            </div>
+        </section>
+
+        <!-- Run Server Section -->
+        <section id="run-server">
+            <h2><span class="icon">🚀</span> รัน FastAPI Server</h2>
+            
+            <h3>คำสั่งรัน Server</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                </div>
+                <pre><code>uvicorn app:app --host 0.0.0.0 --port 8000 --reload</code></pre>
+            </div>
+
+            <div class="info-box">
+                <strong>📝 อธิบายพารามิเตอร์:</strong>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>ความหมาย</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>app:app</code></td>
+                            <td>ไฟล์ <code>app.py</code> และตัวแปร <code>app</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>--host 0.0.0.0</code></td>
+                            <td>เปิดให้เข้าถึงจากเครื่องอื่นได้ (สำคัญ!)</td>
+                        </tr>
+                        <tr>
+                            <td><code>--port 8000</code></td>
+                            <td>ใช้ port 8000</td>
+                        </tr>
+                        <tr>
+                            <td><code>--reload</code></td>
+                            <td>Auto-reload เมื่อแก้ไขโค้ด (Dev mode)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Output ที่คาดหวัง</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Output</span>
+                </div>
+                <pre><code>INFO:     Will watch for changes in these directories: ['/home/pi/iot-server']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [12345] using WatchFiles
+INFO:     Started server process [12346]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.</code></pre>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ สำเร็จ!</strong> Server รันอยู่บน <code>http://0.0.0.0:8000</code>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ หมายเหตุ:</strong>
+                <ul>
+                    <li>Server จะรันต่อเนื่อง กด <code>Ctrl+C</code> เพื่อหยุด</li>
+                    <li>ถ้าต้องการรันเป็น background process ใช้ <code>tmux</code> หรือ <code>screen</code></li>
+                    <li>ใน production ควรใช้ process manager เช่น <code>systemd</code></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Test Section -->
+        <section id="test">
+            <h2><span class="icon">🧪</span> ทดสอบ API</h2>
+            
+            <h3>1. ทดสอบด้วย Web Browser</h3>
+            <div class="step">
+                <div class="step-number">A</div>
+                <div class="step-content">
+                    <h4>เปิด Root Endpoint</h4>
+                    <p>ใน browser เปิด: <code>http://&lt;IP_RPI&gt;:8000/</code></p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">JSON Response</span>
+                        </div>
+                        <pre><code>{
+  "message": "RPi IoT Server is running!",
+  "endpoints": {
+    "POST /api/data": "Send sensor data",
+    "GET /api/latest": "Get latest data",
+    "GET /docs": "API documentation"
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">B</div>
+                <div class="step-content">
+                    <h4>เปิด API Documentation (Swagger UI)</h4>
+                    <p>เปิด: <code>http://&lt;IP_RPI&gt;:8000/docs</code></p>
+                    <div class="info-box">
+                        <strong>🎉 Swagger UI คืออะไร?</strong>
+                        <p>เป็น interactive API documentation ที่ FastAPI สร้างให้อัตโนมัติ คุณสามารถ:</p>
+                        <ul>
+                            <li>ดู endpoint ทั้งหมด</li>
+                            <li>ทดสอบส่ง request ได้ทันที</li>
+                            <li>ดู request/response schema</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <h3>2. ทดสอบส่งข้อมูลผ่าน Swagger UI</h3>
+            <div class="card">
+                <ol>
+                    <li>เปิด <code>http://&lt;IP_RPI&gt;:8000/docs</code></li>
+                    <li>คลิกที่ <strong>POST /api/data</strong></li>
+                    <li>คลิก <strong>"Try it out"</strong></li>
+                    <li>แก้ไข JSON ตัวอย่าง:</li>
+                </ol>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">JSON</span>
+                    </div>
+                    <pre><code>{
+  "device_id": "test-device",
+  "temp": 28.5,
+  "hum": 65.3,
+  "source": "manual-test"
+}</code></pre>
+                </div>
+                <ol start="5">
+                    <li>คลิก <strong>"Execute"</strong></li>
+                    <li>ดู Response:</li>
+                </ol>
+                <div class="code-block">
+                    <div class="code-header">
+                        <span class="code-lang">Response (200 OK)</span>
+                    </div>
+                    <pre><code>{
+  "ok": true,
+  "latest": {
+    "device_id": "test-device",
+    "temp": 28.5,
+    "hum": 65.3,
+    "source": "manual-test",
+    "ts": "2025-02-16T10:30:45.123456"
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <h3>3. ดูข้อมูลล่าสุด</h3>
+            <div class="card">
+                <p>เปิด: <code>http://&lt;IP_RPI&gt;:8000/api/latest</code></p>
+                <p>จะเห็นข้อมูลล่าสุดที่ส่งเข้ามา</p>
+            </div>
+
+            <h3>4. ทดสอบด้วย curl (Optional)</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                </div>
+                <pre><code>curl -X POST "http://&lt;IP_RPI&gt;:8000/api/data" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device_id": "curl-test",
+    "temp": 30.0,
+    "hum": 70.0,
+    "source": "curl"
+  }'</code></pre>
+            </div>
+
+            <h3>5. ตรวจสอบ Server Logs</h3>
+            <div class="card">
+                <p>กลับไปดูที่ terminal ที่รัน <code>uvicorn</code> คุณจะเห็น:</p>
+                <div class="code-block">
+                    <pre><code>[RECV] {'device_id': 'test-device', 'temp': 28.5, 'hum': 65.3, ...}
+INFO:     127.0.0.1:54321 - "POST /api/data HTTP/1.1" 200 OK</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Code Explanation Section -->
+        <section id="code-explanation">
+            <h2><span class="icon">📖</span> อธิบายโค้ดแบบละเอียด</h2>
+            
+            <h3>1. Import Libraries</h3>
+            <div class="code-block">
+                <pre><code>from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Optional, Dict, Any
+from datetime import datetime</code></pre>
+            </div>
+            <div class="card">
+                <ul>
+                    <li><code>FastAPI</code> - Class หลักสำหรับสร้าง API</li>
+                    <li><code>HTTPException</code> - ใช้ส่ง HTTP error (เช่น 404)</li>
+                    <li><code>BaseModel</code> - ใช้กำหนดโครงสร้างข้อมูล (schema)</li>
+                    <li><code>Optional, Dict, Any</code> - Type hints ทำให้โค้ดชัดเจนขึ้น</li>
+                    <li><code>datetime</code> - จัดการเวลา</li>
+                </ul>
+            </div>
+
+            <h3>2. สร้าง FastAPI Instance</h3>
+            <div class="code-block">
+                <pre><code>app = FastAPI(title="RPi IoT Server (HTTP)")</code></pre>
+            </div>
+            <div class="card">
+                <p>สร้างตัวแปร <code>app</code> ที่เป็น FastAPI instance พร้อมตั้งชื่อ API</p>
+            </div>
+
+            <h3>3. กำหนด Data Model ด้วย Pydantic</h3>
+            <div class="code-block">
+                <pre><code>class SensorPayload(BaseModel):
+    device_id: str
+    temp: float
+    hum: float
+    source: Optional[str] = "unknown"
+    ts: Optional[str] = None</code></pre>
+            </div>
+            <div class="card">
+                <p><strong>Pydantic Model</strong> ทำหน้าที่:</p>
+                <ul>
+                    <li>✅ <strong>Validation</strong> - ตรวจสอบ type อัตโนมัติ</li>
+                    <li>✅ <strong>Serialization</strong> - แปลง JSON ↔ Python object</li>
+                    <li>✅ <strong>Documentation</strong> - สร้าง schema ใน /docs</li>
+                </ul>
+                <p><strong>ตัวอย่าง:</strong></p>
+                <ul>
+                    <li><code>device_id: str</code> - ต้องเป็น string, required</li>
+                    <li><code>temp: float</code> - ต้องเป็นตัวเลข, required</li>
+                    <li><code>source: Optional[str] = "unknown"</code> - optional, default = "unknown"</li>
+                </ul>
+            </div>
+
+            <h3>4. Endpoint รับข้อมูล (POST)</h3>
+            <div class="code-block">
+                <pre><code>@app.post("/api/data")
+def receive_data(payload: SensorPayload):
+    global LATEST
+    ts = payload.ts or datetime.utcnow().isoformat()
+    LATEST = { ... }
+    print("[RECV]", LATEST)
+    return {"ok": True, "latest": LATEST}</code></pre>
+            </div>
+            <div class="card">
+                <p><strong>Decorator</strong> <code>@app.post("/api/data")</code> บอกว่า:</p>
+                <ul>
+                    <li>รับ HTTP POST request</li>
+                    <li>ที่ path <code>/api/data</code></li>
+                </ul>
+                <p><strong>Parameter</strong> <code>payload: SensorPayload</code>:</p>
+                <ul>
+                    <li>FastAPI จะ parse JSON body อัตโนมัติ</li>
+                    <li>Validate ตาม SensorPayload model</li>
+                    <li>ถ้าไม่ตรง → ส่ง 422 Unprocessable Entity</li>
+                </ul>
+            </div>
+
+            <h3>5. Endpoint ดูข้อมูลล่าสุด (GET)</h3>
+            <div class="code-block">
+                <pre><code>@app.get("/api/latest")
+def get_latest():
+    if LATEST is None:
+        raise HTTPException(status_code=404, detail="No data yet")
+    return LATEST</code></pre>
+            </div>
+            <div class="card">
+                <p><strong>Logic:</strong></p>
+                <ul>
+                    <li>ถ้ายังไม่มีข้อมูล → ส่ง 404 Not Found</li>
+                    <li>ถ้ามีข้อมูล → คืนข้อมูลล่าสุดเป็น JSON</li>
+                </ul>
+            </div>
+
+            <h3>6. ทำไมใช้ LATEST แบบ Global Variable?</h3>
+            <div class="warning-box">
+                <strong>⚠️ สำหรับ Workshop เท่านั้น!</strong>
+                <p>ในโปรเจกต์จริง ควรใช้:</p>
+                <ul>
+                    <li>📊 <strong>Database</strong> (SQLite, PostgreSQL, MongoDB)</li>
+                    <li>💾 <strong>Redis</strong> (In-memory database)</li>
+                    <li>📁 <strong>File storage</strong> (JSON file, CSV)</li>
+                </ul>
+                <p>Global variable จะหายเมื่อ restart server และไม่เหมาะกับ production</p>
+            </div>
+        </section>
+
+        <!-- Common Errors Section -->
+        <section>
+            <h2><span class="icon">🐛</span> ปัญหาที่พบบ่อยและวิธีแก้</h2>
+            
+            <div class="card">
+                <h3>1. ติดตั้ง fastapi/uvicorn ไม่ได้</h3>
+                <div class="error-box">
+                    <p><strong>Error:</strong> <code>error: externally-managed-environment</code></p>
+                </div>
+                <div class="success-box">
+                    <p><strong>แก้:</strong> ใช้ Virtual Environment (ตามขั้นตอนที่ 4-5)</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>2. Server รันได้แต่เข้าไม่ได้จากเครื่องอื่น</h3>
+                <div class="error-box">
+                    <p><strong>สาเหตุ:</strong> ไม่ได้ใช้ <code>--host 0.0.0.0</code></p>
+                </div>
+                <div class="success-box">
+                    <p><strong>แก้:</strong> ต้องใช้ <code>uvicorn app:app --host 0.0.0.0 --port 8000</code></p>
+                    <p>ถ้าใช้แค่ <code>127.0.0.1</code> จะเข้าได้เฉพาะในเครื่องเดียว</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>3. Port 8000 ถูกใช้งานอยู่แล้ว</h3>
+                <div class="error-box">
+                    <p><strong>Error:</strong> <code>Address already in use</code></p>
+                </div>
+                <div class="success-box">
+                    <p><strong>แก้:</strong> เปลี่ยน port หรือหยุด process ที่ใช้ port นั้นอยู่</p>
+                    <div class="code-block" style="margin-top: 0.5rem;">
+                        <pre><code># ดู process ที่ใช้ port 8000
+sudo ss -lntp | grep 8000
+
+# หรือใช้ port อื่น
+uvicorn app:app --host 0.0.0.0 --port 8001</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>4. ได้ 422 Unprocessable Entity</h3>
+                <div class="error-box">
+                    <p><strong>สาเหตุ:</strong> JSON ที่ส่งไปไม่ตรงตาม schema</p>
+                </div>
+                <div class="success-box">
+                    <p><strong>แก้:</strong> ตรวจสอบว่า:</p>
+                    <ul>
+                        <li>Field ครบไหม? (device_id, temp, hum)</li>
+                        <li>Type ถูกไหม? (temp เป็นตัวเลข ไม่ใช่ string)</li>
+                        <li>JSON syntax ถูกไหม? (มี , ครบไหม)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section>
+            <h2><span class="icon">🎓</span> สรุป</h2>
+            <div class="card">
+                <p>ในบทนี้เราได้เรียนรู้:</p>
+                <ol>
+                    <li>✅ <strong>ติดตั้ง FastAPI</strong> และ Uvicorn บน Raspberry Pi</li>
+                    <li>✅ <strong>สร้าง REST API</strong> ที่รับข้อมูลด้วย POST และส่งข้อมูลด้วย GET</li>
+                    <li>✅ <strong>ใช้ Pydantic</strong> สำหรับ data validation</li>
+                    <li>✅ <strong>ทดสอบ API</strong> ด้วย Swagger UI (/docs)</li>
+                    <li>✅ <strong>เข้าใจโครงสร้าง</strong> FastAPI application</li>
+                </ol>
+            </div>
+
+            <div class="success-box">
+                <h3>🎉 ขั้นต่อไป</h3>
+                <p>ตอนนี้ Server พร้อมรับข้อมูลแล้ว! ในบทที่ 3 เราจะเรียนรู้วิธี:</p>
+                <ul>
+                    <li>เขียนโค้ด ESP32 เพื่อส่งข้อมูลมาที่ server</li>
+                    <li>ใช้ HTTPClient library</li>
+                    <li>สร้าง JSON payload</li>
+                    <li>Debug ด้วย Serial Monitor</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section>
+            <h2><span class="icon">📚</span> แหล่งเรียนรู้เพิ่มเติม</h2>
+            <div class="card">
+                <ul>
+                    <li><a href="https://fastapi.tiangolo.com/" target="_blank">FastAPI Official Documentation</a></li>
+                    <li><a href="https://www.uvicorn.org/" target="_blank">Uvicorn Documentation</a></li>
+                    <li><a href="https://pydantic-docs.helpmanual.io/" target="_blank">Pydantic Documentation</a></li>
+                    <li><a href="https://www.geeksforgeeks.org/python/fastapi-tutorial/" target="_blank">FastAPI Tutorial - GeeksforGeeks</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 IoT Workshop - FastAPI Server บน Raspberry Pi</p>
+            <div class="footer-links">
+                <a href="lesson-01-introduction.html">← บทที่ 1: Introduction</a>
+                <a href="lesson-03-esp32-client.html">บทที่ 3: ESP32 Client →</a>
+            </div>
+            <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>
+        </div>
+    </footer>
+</body>
+</html>

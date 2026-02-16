@@ -1,0 +1,66 @@
+/*
+ * Configuration Template
+ * ======================
+ * คัดลอกไฟล์นี้เป็น config.h แล้วแก้ไขค่าตามของคุณ
+ * 
+ * คำแนะนำ:
+ * 1. เปลี่ยนชื่อไฟล์เป็น config.h
+ * 2. แก้ไข WIFI_SSID และ WIFI_PASS
+ * 3. แก้ไข SERVER_IP ให้ตรงกับ Raspberry Pi
+ * 4. ตั้งชื่อ DEVICE_ID ไม่ซ้ำกัน
+ */
+
+// ==================== Wi-Fi Configuration ====================
+
+#define WIFI_SSID "YOUR_WIFI_NAME"         // ชื่อ Wi-Fi (SSID)
+#define WIFI_PASS "YOUR_WIFI_PASSWORD"     // รหัสผ่าน Wi-Fi
+
+
+// ==================== Server Configuration ====================
+
+#define SERVER_IP   "192.168.1.50"         // IP Address ของ Raspberry Pi
+#define SERVER_PORT 8000                   // Port ของ FastAPI Server
+
+
+// ==================== Device Configuration ====================
+
+#define DEVICE_ID "esp32-01"               // Device ID (ตั้งชื่อไม่ซ้ำกัน)
+
+
+// ==================== Timing Configuration ====================
+
+#define SEND_INTERVAL_MS 3000              // ส่งข้อมูลทุกกี่ milliseconds (3000 = 3 วินาที)
+
+
+// ==================== Optional: Debug Configuration ====================
+
+#define DEBUG_MODE true                    // true = แสดง debug messages
+#define SERIAL_BAUD 115200                 // Serial Monitor baud rate
+
+
+// ==================== วิธีหา IP Address ของ Raspberry Pi ====================
+/*
+ * บน Raspberry Pi ใช้คำสั่ง:
+ * 
+ *   hostname -I
+ * 
+ * หรือ
+ * 
+ *   ip addr show
+ * 
+ * ตัวอย่าง output:
+ *   192.168.1.50 (นี่คือ IP ที่ต้องใส่ใน SERVER_IP)
+ */
+
+
+// ==================== เช็คว่า Wi-Fi และ Server อยู่ในเน็ตเดียวกันไหม ====================
+/*
+ * 1. ESP32 IP: 192.168.1.100
+ * 2. RPi IP:   192.168.1.50
+ * 
+ * สังเกต: 192.168.1.xxx เหมือนกัน = อยู่เน็ตเดียวกัน ✅
+ * 
+ * ถ้าไม่ตรงกัน:
+ *   - ตรวจสอบว่า ESP32 เชื่อม Wi-Fi ถูก Network ไหม
+ *   - RPi ต้องเชื่อม Wi-Fi เดียวกับ ESP32
+ */

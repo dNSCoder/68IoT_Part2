@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บทที่ 1: HTTP, REST API และ JSON | IoT Workshop</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        header .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .lesson-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--bg-card);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Main Content */
+        main {
+            padding: 3rem 0;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: var(--secondary);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--accent);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(37, 99, 235, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-code);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-lang {
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .inline-code {
+            background: var(--bg-code);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        /* Diagram */
+        .diagram {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .diagram pre {
+            display: inline-block;
+            text-align: left;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        /* List */
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Quiz Section */
+        .quiz {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 2px solid var(--primary);
+        }
+
+        .quiz h3 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+
+        .quiz-question {
+            background: rgba(37, 99, 235, 0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .quiz-question strong {
+            color: var(--accent);
+        }
+
+        details {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid var(--success);
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--success);
+            user-select: none;
+        }
+
+        summary:hover {
+            color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 0.75rem;
+            }
+        }
+
+        /* Icon */
+        .icon {
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="lesson-badge">บทที่ 1 จาก 3</div>
+            <h1><span class="icon">📚</span> Introduction</h1>
+            <p class="subtitle">HTTP, REST API และ JSON - พื้นฐานสำคัญของ IoT</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="#overview">ภาพรวม</a></li>
+                <li><a href="#client-server">Client-Server</a></li>
+                <li><a href="#http">HTTP Protocol</a></li>
+                <li><a href="#rest">REST API</a></li>
+                <li><a href="#json">JSON</a></li>
+                <li><a href="#example">ตัวอย่าง</a></li>
+                <li><a href="#quiz">แบบทดสอบ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2><span class="icon">🎯</span> เป้าหมายของบทนี้</h2>
+            <div class="card">
+                <p>เข้าใจพื้นฐานของ:</p>
+                <ol>
+                    <li><strong>Client-Server Architecture</strong> - สถาปัตยกรรมการสื่อสาร</li>
+                    <li><strong>HTTP Protocol</strong> - กฎเกณฑ์การส่งข้อมูล</li>
+                    <li><strong>REST API</strong> - รูปแบบการออกแบบ API</li>
+                    <li><strong>JSON Data Format</strong> - รูปแบบข้อมูลที่ใช้ใน IoT</li>
+                </ol>
+            </div>
+
+            <div class="info-box">
+                <strong>💡 ทำไมต้องเรียนเรื่องนี้?</strong>
+                <p>เพราะทุกอุปกรณ์ IoT ต้องสื่อสารกับ Server ผ่าน HTTP และ JSON เป็นมาตรฐานสากล การเข้าใจเรื่องนี้จะทำให้เราสามารถพัฒนาระบบ IoT ที่ทำงานได้จริง</p>
+            </div>
+        </section>
+
+        <!-- Client-Server Section -->
+        <section id="client-server">
+            <h2><span class="icon">🖥️</span> Client-Server Architecture</h2>
+            
+            <h3>แนวคิดพื้นฐาน</h3>
+            <div class="diagram">
+                <pre>
+┌─────────────┐                    ┌─────────────┐
+│             │  ─── Request ───>  │             │
+│   CLIENT    │                    │   SERVER    │
+│  (ESP32)    │  <─── Response ──  │ (Raspberry  │
+│             │                    │     Pi)     │
+└─────────────┘                    └─────────────┘
+                </pre>
+            </div>
+
+            <h3>บทบาทในระบบ IoT</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>บทบาท</th>
+                            <th>ตัวอย่าง</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Client</strong></td>
+                            <td>ส่งคำขอ (Request)</td>
+                            <td>ESP32 ส่งข้อมูล sensor</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Server</strong></td>
+                            <td>รับคำขอและตอบกลับ (Response)</td>
+                            <td>Raspberry Pi รับและเก็บข้อมูล</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>ตัวอย่างในชีวิตจริง</h3>
+            <div class="success-box">
+                <strong>🍽️ เปรียบเทียบกับร้านอาหาร</strong>
+                <ul>
+                    <li><strong>ร้านอาหาร = Server</strong> (รอรับคำสั่ง)</li>
+                    <li><strong>คุณ = Client</strong> (ส่งคำสั่ง)</li>
+                </ul>
+                <p><strong>ขั้นตอน:</strong></p>
+                <ol>
+                    <li>คุณสั่งอาหาร (Request)</li>
+                    <li>ร้านทำอาหาร (Processing)</li>
+                    <li>ร้านเสิร์ฟอาหาร (Response)</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- HTTP Section -->
+        <section id="http">
+            <h2><span class="icon">🌐</span> HTTP Protocol</h2>
+            
+            <h3>HTTP คืออะไร?</h3>
+            <div class="card">
+                <p><strong>HTTP</strong> = <strong>H</strong>yper<strong>T</strong>ext <strong>T</strong>ransfer <strong>P</strong>rotocol</p>
+                <p>เป็นกฎเกณฑ์ (Protocol) สำหรับการสื่อสารระหว่าง Client และ Server บนอินเทอร์เน็ต</p>
+            </div>
+
+            <h3>HTTP Request Structure</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP Request</span>
+                </div>
+                <pre><code>POST /api/data HTTP/1.1
+Host: 192.168.1.50:8000
+Content-Type: application/json
+
+{"device_id":"esp32-01","temp":28.5,"hum":65.3}</code></pre>
+            </div>
+
+            <div class="info-box">
+                <strong>📋 ส่วนประกอบของ HTTP Request</strong>
+                <ol>
+                    <li><strong>Method:</strong> POST (บอกว่าต้องการทำอะไร)</li>
+                    <li><strong>Path:</strong> /api/data (ตำแหน่งของ resource)</li>
+                    <li><strong>Headers:</strong> ข้อมูลเสริม เช่น Content-Type</li>
+                    <li><strong>Body:</strong> ข้อมูลที่ส่ง (JSON)</li>
+                </ol>
+            </div>
+
+            <h3>HTTP Methods ที่ใช้บ่อยใน IoT</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>การใช้งาน</th>
+                            <th>ตัวอย่าง</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>GET</strong></td>
+                            <td>ดึงข้อมูล</td>
+                            <td>ดูข้อมูลล่าสุด</td>
+                        </tr>
+                        <tr>
+                            <td><strong>POST</strong></td>
+                            <td>ส่งข้อมูลใหม่</td>
+                            <td>ส่งค่า sensor</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PUT</strong></td>
+                            <td>อัปเดตข้อมูล</td>
+                            <td>แก้ไขการตั้งค่า</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DELETE</strong></td>
+                            <td>ลบข้อมูล</td>
+                            <td>ลบ log เก่า</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>HTTP Response Structure</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">HTTP Response</span>
+                </div>
+                <pre><code>HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"ok":true,"message":"Data received successfully"}</code></pre>
+            </div>
+
+            <h3>HTTP Status Codes ที่ควรรู้</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>ความหมาย</th>
+                            <th>ตัวอย่าง</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span style="color: var(--success)">200</span></td>
+                            <td>OK</td>
+                            <td>สำเร็จ</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--success)">201</span></td>
+                            <td>Created</td>
+                            <td>สร้างข้อมูลใหม่สำเร็จ</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--warning)">400</span></td>
+                            <td>Bad Request</td>
+                            <td>ข้อมูลที่ส่งมาผิดพลาด</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--warning)">404</span></td>
+                            <td>Not Found</td>
+                            <td>ไม่พบข้อมูล</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--warning)">422</span></td>
+                            <td>Unprocessable Entity</td>
+                            <td>ข้อมูลไม่ตรงตาม schema</td>
+                        </tr>
+                        <tr>
+                            <td><span style="color: var(--error)">500</span></td>
+                            <td>Internal Server Error</td>
+                            <td>Server เกิดข้อผิดพลาด</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- REST Section -->
+        <section id="rest">
+            <h2><span class="icon">🔗</span> REST API</h2>
+            
+            <h3>REST คืออะไร?</h3>
+            <div class="card">
+                <p><strong>REST</strong> = <strong>RE</strong>presentational <strong>S</strong>tate <strong>T</strong>ransfer</p>
+                <p>เป็นรูปแบบการออกแบบ API ที่เน้นความเรียบง่ายและใช้ HTTP Protocol</p>
+            </div>
+
+            <h3>หลักการ REST</h3>
+            <div class="info-box">
+                <ol>
+                    <li><strong>Stateless:</strong> แต่ละ request ต้องมีข้อมูลครบ ไม่พึ่งพา session</li>
+                    <li><strong>Resource-based:</strong> ใช้ URL แทน resource (เช่น /api/data)</li>
+                    <li><strong>HTTP Methods:</strong> ใช้ GET, POST, PUT, DELETE</li>
+                    <li><strong>JSON Format:</strong> ใช้ JSON ส่งข้อมูล</li>
+                </ol>
+            </div>
+
+            <h3>ตัวอย่าง REST API Endpoints</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">REST Endpoints</span>
+                </div>
+                <pre><code>GET    /api/data           → ดูข้อมูลทั้งหมด
+GET    /api/data/123       → ดูข้อมูล ID 123
+POST   /api/data           → สร้างข้อมูลใหม่
+PUT    /api/data/123       → แก้ไขข้อมูล ID 123
+DELETE /api/data/123       → ลบข้อมูล ID 123</code></pre>
+            </div>
+
+            <h3>REST API ใน Workshop นี้</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Endpoint</th>
+                            <th>ทำอะไร</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>POST</strong></td>
+                            <td><code>/api/data</code></td>
+                            <td>รับข้อมูลจาก ESP32</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GET</strong></td>
+                            <td><code>/api/latest</code></td>
+                            <td>ดูข้อมูลล่าสุด</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- JSON Section -->
+        <section id="json">
+            <h2><span class="icon">📊</span> JSON (JavaScript Object Notation)</h2>
+            
+            <h3>JSON คืออะไร?</h3>
+            <div class="card">
+                <p>รูปแบบข้อมูลที่:</p>
+                <ul>
+                    <li>✅ อ่านง่าย (Human-readable)</li>
+                    <li>✅ เบา (Lightweight)</li>
+                    <li>✅ ใช้ได้หลายภาษา</li>
+                    <li>✅ เป็นมาตรฐานสากล</li>
+                </ul>
+            </div>
+
+            <h3>โครงสร้าง JSON</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">JSON</span>
+                </div>
+                <pre><code>{
+  "device_id": "esp32-01",
+  "temp": 28.5,
+  "hum": 65.3,
+  "source": "virtual",
+  "ts": "2025-02-16T10:30:00Z"
+}</code></pre>
+            </div>
+
+            <h3>Data Types ใน JSON</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>ตัวอย่าง</th>
+                            <th>หมายเหตุ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>String</strong></td>
+                            <td><code>"esp32-01"</code></td>
+                            <td>ใส่ ""</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Number</strong></td>
+                            <td><code>28.5</code></td>
+                            <td>ไม่ใส่ ""</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Boolean</strong></td>
+                            <td><code>true</code>, <code>false</code></td>
+                            <td>พิมพ์เล็ก</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Null</strong></td>
+                            <td><code>null</code></td>
+                            <td>ค่าว่าง</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Object</strong></td>
+                            <td><code>{"key": "value"}</code></td>
+                            <td>ใช้ {}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Array</strong></td>
+                            <td><code>[1, 2, 3]</code></td>
+                            <td>ใช้ []</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>JSON ที่ถูกต้อง vs ผิด</h3>
+            <div class="success-box">
+                <h4>✅ ถูกต้อง</h4>
+                <div class="code-block">
+                    <pre><code>{
+  "device_id": "esp32-01",
+  "temp": 28.5,
+  "hum": 65.3
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="error-box">
+                <h4>❌ ผิด</h4>
+                <div class="code-block">
+                    <pre><code>{
+  device_id: "esp32-01",      // ❌ key ต้องมี ""
+  "temp": 28.5,
+  "hum": 65.3,                // ❌ จุลภาคตัวสุดท้าย
+}</code></pre>
+                </div>
+            </div>
+
+            <h3>JSON ใน Arduino (ESP32)</h3>
+            <h4>สร้าง JSON String</h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">C++ / Arduino</span>
+                </div>
+                <pre><code>String payload = "{";
+payload += "\"device_id\":\"esp32-01\",";
+payload += "\"temp\":" + String(28.5, 2) + ",";
+payload += "\"hum\":" + String(65.3, 2);
+payload += "}";
+
+// ผลลัพธ์: {"device_id":"esp32-01","temp":28.50,"hum":65.30}</code></pre>
+            </div>
+
+            <h4>Parse JSON (ใช้ ArduinoJson Library)</h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">C++ / Arduino</span>
+                </div>
+                <pre><code>#include &lt;ArduinoJson.h&gt;
+
+String json = "{\"temp\":28.5,\"hum\":65.3}";
+
+StaticJsonDocument&lt;200&gt; doc;
+deserializeJson(doc, json);
+
+float temp = doc["temp"];  // 28.5
+float hum = doc["hum"];    // 65.3</code></pre>
+            </div>
+
+            <h3>ทำไมต้องใช้ JSON?</h3>
+            <div class="info-box">
+                <strong>ข้อดีของ JSON</strong>
+                <ol>
+                    <li><strong>อ่านง่าย</strong> - ทั้งคนและเครื่องอ่านได้</li>
+                    <li><strong>เบา</strong> - ขนาดเล็กกว่า XML</li>
+                    <li><strong>รองรับหลายภาษา</strong> - Python, JavaScript, Java, C++</li>
+                    <li><strong>มาตรฐานสากล</strong> - ใช้กันทั่วโลก</li>
+                </ol>
+            </div>
+
+            <h3>เปรียบเทียบกับรูปแบบอื่น</h3>
+            <div class="card">
+                <h4>JSON</h4>
+                <div class="code-block">
+                    <pre><code>{"temp":28.5,"hum":65.3}</code></pre>
+                </div>
+                <p>ขนาด: <strong>27 bytes</strong></p>
+
+                <h4>XML</h4>
+                <div class="code-block">
+                    <pre><code>&lt;data&gt;
+  &lt;temp&gt;28.5&lt;/temp&gt;
+  &lt;hum&gt;65.3&lt;/hum&gt;
+&lt;/data&gt;</code></pre>
+                </div>
+                <p>ขนาด: <strong>53 bytes</strong></p>
+
+                <h4>Plain Text</h4>
+                <div class="code-block">
+                    <pre><code>temp=28.5&hum=65.3</code></pre>
+                </div>
+                <p>ขนาด: <strong>18 bytes</strong> แต่ไม่มีโครงสร้าง</p>
+            </div>
+        </section>
+
+        <!-- Example Section -->
+        <section id="example">
+            <h2><span class="icon">💻</span> ตัวอย่างการใช้งานจริง</h2>
+            
+            <h3>Scenario: ส่งข้อมูล Temperature และ Humidity</h3>
+
+            <h4>การสื่อสารแบบ Request-Response</h4>
+            <div class="diagram">
+                <pre>
+ESP32                    FastAPI Server
+  |                            |
+  |-- อ่านค่า Sensor          |
+  |                            |
+  |-- สร้าง JSON Payload      |
+  |                            |
+  |==== HTTP POST Request ===>|
+  |                            |
+  |                      Validate JSON
+  |                      เก็บข้อมูล
+  |                            |
+  |<==== HTTP Response ========|
+  |                            |
+  |-- แสดงผลใน Serial         |
+  |                            |
+                </pre>
+            </div>
+
+            <h4>ESP32 Code (Simplified)</h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">C++ / Arduino</span>
+                </div>
+                <pre><code>// 1. อ่านค่า Sensor
+float temp = 28.5;
+float hum = 65.3;
+
+// 2. สร้าง JSON
+String json = "{\"device_id\":\"esp32-01\",";
+json += "\"temp\":" + String(temp) + ",";
+json += "\"hum\":" + String(hum) + "}";
+
+// 3. ส่ง HTTP POST
+HTTPClient http;
+http.begin("http://192.168.1.50:8000/api/data");
+http.addHeader("Content-Type", "application/json");
+
+int code = http.POST(json);
+String response = http.getString();
+
+Serial.println(response);
+http.end();</code></pre>
+            </div>
+
+            <h4>FastAPI Code (Simplified)</h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python / FastAPI</span>
+                </div>
+                <pre><code>from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class SensorData(BaseModel):
+    device_id: str
+    temp: float
+    hum: float
+
+@app.post("/api/data")
+def receive(data: SensorData):
+    print(f"Received: {data}")
+    return {"ok": True}</code></pre>
+            </div>
+
+            <h3>Best Practices</h3>
+            <div class="warning-box">
+                <strong>⚠️ สิ่งที่ควรทำ</strong>
+                <ol>
+                    <li><strong>ตั้งชื่อ Field ให้สื่อความหมาย</strong>
+                        <div class="code-block" style="margin-top: 0.5rem;">
+                            <pre><code>// ✅ ดี
+{"temperature_celsius": 28.5}
+
+// ❌ ไม่ดี
+{"t": 28.5}</code></pre>
+                        </div>
+                    </li>
+                    <li><strong>ใช้ Data Type ที่ถูกต้อง</strong>
+                        <div class="code-block" style="margin-top: 0.5rem;">
+                            <pre><code>// ✅ ดี
+{"temp": 28.5, "count": 10}
+
+// ❌ ไม่ดี
+{"temp": "28.5", "count": "10"}</code></pre>
+                        </div>
+                    </li>
+                    <li><strong>เพิ่ม Timestamp</strong>
+                        <div class="code-block" style="margin-top: 0.5rem;">
+                            <pre><code>{
+  "device_id": "esp32-01",
+  "temp": 28.5,
+  "ts": "2025-02-16T10:30:00Z"  // ✅ รู้ว่าส่งเมื่อไหร่
+}</code></pre>
+                        </div>
+                    </li>
+                    <li><strong>Handle Errors</strong>
+                        <div class="code-block" style="margin-top: 0.5rem;">
+                            <pre><code>if (httpCode == 200) {
+  // Success
+} else if (httpCode == 422) {
+  Serial.println("Invalid JSON format!");
+} else {
+  Serial.println("Server error!");
+}</code></pre>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Quiz Section -->
+        <section id="quiz">
+            <div class="quiz">
+                <h2><span class="icon">✅</span> แบบทดสอบความเข้าใจ</h2>
+                
+                <div class="quiz-question">
+                    <strong>1. HTTP Method ไหนใช้สำหรับส่งข้อมูลไปยัง Server?</strong>
+                </div>
+                <details>
+                    <summary>ดูเฉลย</summary>
+                    <p><strong>POST</strong> - ใช้สำหรับส่งข้อมูลใหม่ไปยัง Server</p>
+                </details>
+
+                <div class="quiz-question">
+                    <strong>2. Status Code 200 หมายถึงอะไร?</strong>
+                </div>
+                <details>
+                    <summary>ดูเฉลย</summary>
+                    <p><strong>OK (สำเร็จ)</strong> - การประมวลผลสำเร็จ</p>
+                </details>
+
+                <div class="quiz-question">
+                    <strong>3. JSON object ต้องใช้สัญลักษณ์อะไรครอบ?</strong>
+                </div>
+                <details>
+                    <summary>ดูเฉลย</summary>
+                    <p><strong>{ }</strong> (curly braces) - เช่น {"key": "value"}</p>
+                </details>
+
+                <div class="quiz-question">
+                    <strong>4. ESP32 เป็น Client หรือ Server?</strong>
+                </div>
+                <details>
+                    <summary>ดูเฉลย</summary>
+                    <p><strong>Client</strong> - ESP32 ส่งข้อมูลไปยัง Server (Raspberry Pi)</p>
+                </details>
+
+                <div class="quiz-question">
+                    <strong>5. REST API endpoint <code>/api/data</code> คือ resource อะไร?</strong>
+                </div>
+                <details>
+                    <summary>ดูเฉลย</summary>
+                    <p><strong>Endpoint สำหรับรับส่งข้อมูล sensor</strong></p>
+                </details>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section id="summary">
+            <h2><span class="icon">🎓</span> สรุป</h2>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>หัวข้อ</th>
+                            <th>ความหมาย</th>
+                            <th>ใช้ในโปรเจกต์</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Client-Server</strong></td>
+                            <td>แบ่งบทบาทชัดเจน</td>
+                            <td>ESP32 = Client, RPi = Server</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HTTP</strong></td>
+                            <td>Protocol สื่อสาร</td>
+                            <td>ใช้ POST ส่งข้อมูล, GET ดึงข้อมูล</td>
+                        </tr>
+                        <tr>
+                            <td><strong>REST API</strong></td>
+                            <td>รูปแบบการออกแบบ API</td>
+                            <td>/api/data, /api/latest</td>
+                        </tr>
+                        <tr>
+                            <td><strong>JSON</strong></td>
+                            <td>รูปแบบข้อมูล</td>
+                            <td>{"device_id":"esp32-01",...}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section>
+            <h2><span class="icon">📚</span> แหล่งเรียนรู้เพิ่มเติม</h2>
+            <div class="card">
+                <ul>
+                    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview" target="_blank">MDN: HTTP Overview</a></li>
+                    <li><a href="https://restfulapi.net/" target="_blank">RESTful API Design</a></li>
+                    <li><a href="https://www.json.org/" target="_blank">JSON.org</a></li>
+                    <li><a href="https://httpstat.us/" target="_blank">HTTP Status Codes</a></li>
+                    <li><a href="https://www.geeksforgeeks.org/python/fastapi-tutorial/" target="_blank">FastAPI Tutorial - GeeksforGeeks</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 IoT Workshop - HTTP, REST API และ JSON</p>
+            <div class="footer-links">
+                <a href="lesson-02-fastapi-server.html">บทที่ 2: FastAPI Server →</a>
+                <a href="lesson-03-esp32-client.html">บทที่ 3: ESP32 Client →</a>
+            </div>
+            <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>
+        </div>
+    </footer>
+</body>
+</html>

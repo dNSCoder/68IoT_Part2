@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บทที่ 3: ESP32 Client | IoT Workshop</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --secondary: #2563eb;
+            --accent: #10b981;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        header .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .lesson-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--bg-card);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        /* Main Content */
+        main {
+            padding: 3rem 0;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: var(--secondary);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--accent);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(37, 99, 235, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-code);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-lang {
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .inline-code {
+            background: var(--bg-code);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent);
+        }
+
+        /* Step */
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        /* List */
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        /* Diagram */
+        .diagram {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .diagram pre {
+            display: inline-block;
+            text-align: left;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        /* Checklist */
+        .checklist {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .checklist li {
+            list-style: none;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(245, 158, 11, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .checklist li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .step {
+                flex-direction: column;
+            }
+        }
+
+        /* Icon */
+        .icon {
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="lesson-badge">บทที่ 3 จาก 3</div>
+            <h1><span class="icon">📡</span> ESP32 HTTP Client</h1>
+            <p class="subtitle">ส่งข้อมูลจาก ESP32 ไปยัง FastAPI Server ด้วย HTTP POST</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="#overview">ภาพรวม</a></li>
+                <li><a href="#prerequisites">เตรียมความพร้อม</a></li>
+                <li><a href="#libraries">Arduino Libraries</a></li>
+                <li><a href="#code">โค้ด ESP32</a></li>
+                <li><a href="#upload">Upload & Test</a></li>
+                <li><a href="#troubleshooting">แก้ปัญหา</a></li>
+                <li><a href="#next-steps">ขั้นต่อไป</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Overview Section -->
+        <section id="overview">
+            <h2><span class="icon">🎯</span> เป้าหมายของบทนี้</h2>
+            <div class="card">
+                <p>ในบทสุดท้ายนี้ เราจะ:</p>
+                <ol>
+                    <li><strong>เขียนโค้ด ESP32</strong> เพื่อส่งข้อมูลไปยัง FastAPI Server</li>
+                    <li><strong>ใช้ HTTPClient library</strong> สำหรับส่ง HTTP POST request</li>
+                    <li><strong>สร้าง JSON payload</strong> ด้วย Virtual Sensor (random data)</li>
+                    <li><strong>Debug</strong> ด้วย Serial Monitor</li>
+                    <li><strong>ทดสอบระบบ</strong> แบบ End-to-End</li>
+                </ol>
+            </div>
+
+            <div class="info-box">
+                <strong>💡 ทำไมเริ่มด้วย Virtual Sensor?</strong>
+                <p>เพราะต้องการให้เห็นการทำงานของระบบสื่อสารก่อน โดยไม่ต้องติดตั้งฮาร์ดแวร์เพิ่ม หลังจากนี้จะง่ายต่อการเปลี่ยนเป็น Sensor จริง (BME280, DHT22, etc.)</p>
+            </div>
+
+            <h3>System Overview</h3>
+            <div class="diagram">
+                <pre>
+┌─────────────┐                          ┌─────────────┐
+│             │   1. Wi-Fi Connect       │             │
+│   ESP32     │─────────────────────────>│  Raspberry  │
+│  (Client)   │                          │  Pi Server  │
+│             │   2. HTTP POST /api/data │  (FastAPI)  │
+│  Virtual    │=========================>│             │
+│  Sensor     │   JSON: {temp, hum, ...} │  Validate   │
+│  (Random)   │                          │  & Store    │
+│             │   3. HTTP Response 200   │             │
+│             │<─────────────────────────│             │
+│  Serial     │   {"ok": true, ...}      │  /docs      │
+│  Monitor    │                          │  /api/latest│
+└─────────────┘                          └─────────────┘
+                </pre>
+            </div>
+        </section>
+
+        <!-- Prerequisites Section -->
+        <section id="prerequisites">
+            <h2><span class="icon">📋</span> เตรียมความพร้อม</h2>
+            
+            <h3>ฮาร์ดแวร์</h3>
+            <div class="checklist">
+                <ul>
+                    <li>ESP32 Development Board (พร้อม USB cable)</li>
+                    <li>คอมพิวเตอร์ที่ติดตั้ง Arduino IDE</li>
+                    <li>Raspberry Pi ที่รัน FastAPI Server อยู่</li>
+                    <li>ESP32 และ RPi อยู่ Wi-Fi เดียวกัน</li>
+                </ul>
+            </div>
+
+            <h3>ซอฟต์แวร์</h3>
+            <div class="checklist">
+                <ul>
+                    <li>Arduino IDE เวอร์ชัน 1.8+ หรือ 2.x</li>
+                    <li>ESP32 Board Support Package ติดตั้งแล้ว</li>
+                    <li>Serial Monitor สำหรับดูผลลัพธ์</li>
+                </ul>
+            </div>
+
+            <h3>ข้อมูลที่ต้องรู้</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ข้อมูล</th>
+                            <th>ตัวอย่าง</th>
+                            <th>หมายเหตุ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Wi-Fi SSID</td>
+                            <td><code>MyWiFi</code></td>
+                            <td>ชื่อ Wi-Fi ที่จะเชื่อมต่อ</td>
+                        </tr>
+                        <tr>
+                            <td>Wi-Fi Password</td>
+                            <td><code>password123</code></td>
+                            <td>รหัสผ่าน Wi-Fi</td>
+                        </tr>
+                        <tr>
+                            <td>Raspberry Pi IP</td>
+                            <td><code>192.168.1.50</code></td>
+                            <td>หาด้วย <code>hostname -I</code></td>
+                        </tr>
+                        <tr>
+                            <td>FastAPI Port</td>
+                            <td><code>8000</code></td>
+                            <td>Port ที่ uvicorn รันอยู่</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Libraries Section -->
+        <section id="libraries">
+            <h2><span class="icon">📚</span> Arduino Libraries ที่ใช้</h2>
+            
+            <div class="card">
+                <h3>สำหรับ ESP32</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Library</th>
+                            <th>ใช้ทำอะไร</th>
+                            <th>Built-in?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>WiFi.h</code></td>
+                            <td>เชื่อมต่อ Wi-Fi</td>
+                            <td>✅ Yes (ESP32 Core)</td>
+                        </tr>
+                        <tr>
+                            <td><code>HTTPClient.h</code></td>
+                            <td>ส่ง HTTP requests</td>
+                            <td>✅ Yes (ESP32 Core)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ หมายเหตุสำหรับบอร์ดอื่น</strong>
+                <p>ถ้าใช้บอร์ดที่ไม่ใช่ ESP32 (เช่น Arduino MKR WiFi 1010, UNO WiFi Rev2):</p>
+                <ul>
+                    <li>ใช้ <code>WiFiNINA.h</code> แทน <code>WiFi.h</code></li>
+                    <li>ใช้ <code>ArduinoHttpClient.h</code> แทน <code>HTTPClient.h</code></li>
+                    <li>Syntax จะต่างกันเล็กน้อย</li>
+                </ul>
+                <p>ดูตัวอย่าง: <a href="https://github.com/arduino-libraries/ArduinoHttpClient" target="_blank">ArduinoHttpClient</a></p>
+            </div>
+
+            <h3>ตรวจสอบว่า ESP32 Board Support ติดตั้งแล้ว</h3>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <p>เปิด Arduino IDE → <strong>Tools</strong> → <strong>Board</strong></p>
+                    <p>ต้องเห็น <strong>"ESP32 Dev Module"</strong> หรือบอร์ด ESP32 อื่น ๆ</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <p>ถ้ายังไม่มี ให้ติดตั้งผ่าน <strong>Board Manager</strong>:</p>
+                    <ol>
+                        <li>เปิด <strong>Tools</strong> → <strong>Board</strong> → <strong>Boards Manager...</strong></li>
+                        <li>ค้นหา <strong>"esp32"</strong></li>
+                        <li>ติดตั้ง <strong>"ESP32 by Espressif Systems"</strong></li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- Code Section -->
+        <section id="code">
+            <h2><span class="icon">💻</span> โค้ด ESP32 Client</h2>
+            
+            <div class="warning-box">
+                <strong>⚠️ อย่าลืมแก้ไข Config!</strong>
+                <p>แก้ค่าต่อไปนี้ให้ตรงกับระบบของคุณ:</p>
+                <ul>
+                    <li><code>WIFI_SSID</code> - ชื่อ Wi-Fi ของคุณ</li>
+                    <li><code>WIFI_PASS</code> - รหัสผ่าน Wi-Fi</li>
+                    <li><code>SERVER_IP</code> - IP ของ Raspberry Pi</li>
+                    <li><code>SERVER_PORT</code> - Port ของ FastAPI (ปกติ 8000)</li>
+                </ul>
+            </div>
+
+            <h3>โค้ดเต็ม (iot_http_client.ino)</h3>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">C++ / Arduino</span>
+                </div>
+                <pre><code>#include &lt;WiFi.h&gt;            // Wi‑Fi library ของ ESP32
+#include &lt;HTTPClient.h&gt;      // HTTP client (ใช้ส่ง GET/POST)
+
+// ===== CONFIGURATION - แก้ตรงนี้ให้ตรงกับระบบของคุณ =====
+const char* WIFI_SSID = "YOUR_WIFI_SSID";        // ชื่อ Wi‑Fi
+const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";    // รหัส Wi‑Fi
+
+const char* SERVER_IP   = "192.168.1.50";        // IP ของ Raspberry Pi
+const int   SERVER_PORT = 8000;                  // Port ของ FastAPI
+
+String deviceId = "esp32-01";                    // ตั้งชื่ออุปกรณ์ (ไม่ซ้ำกัน)
+// =========================================================
+
+unsigned long lastSendMs = 0;                    // เวลาล่าสุดที่ส่งข้อมูล
+const unsigned long SEND_INTERVAL_MS = 3000;     // ส่งทุก 3 วินาที
+
+// ฟังก์ชันเชื่อมต่อ Wi-Fi
+void connectWiFi() {
+  WiFi.mode(WIFI_STA);                           // ตั้งโหมดเป็น Station (เชื่อม Wi‑Fi)
+  WiFi.begin(WIFI_SSID, WIFI_PASS);              // เริ่มเชื่อมต่อด้วย SSID/PASS
+
+  Serial.print("Connecting WiFi");
+  while (WiFi.status() != WL_CONNECTED) {        // รอจนกว่าจะเชื่อมต่อสำเร็จ
+    delay(300);
+    Serial.print(".");
+  }
+
+  Serial.println();
+  Serial.print("WiFi connected, IP = ");
+  Serial.println(WiFi.localIP());                // แสดง IP ของ ESP32
+}
+
+// ฟังก์ชันสุ่มค่าอุณหภูมิ (Virtual Sensor)
+float virtualTemp() {
+  return 25.0 + (random(0, 800) / 100.0);        // สุ่ม 25.00–33.00°C
+}
+
+// ฟังก์ชันสุ่มค่าความชื้น (Virtual Sensor)
+float virtualHum() {
+  return 40.0 + (random(0, 4000) / 100.0);       // สุ่ม 40.00–80.00%
+}
+
+void setup() {
+  Serial.begin(115200);                          // เปิด Serial สำหรับ debug
+  delay(300);
+
+  randomSeed(micros());                          // ทำให้ random ไม่ซ้ำเดิม
+  connectWiFi();                                 // เชื่อม Wi‑Fi
+
+  Serial.println("ESP32 HTTP IoT Client ready");
+  Serial.println("Sending data to: http://" + String(SERVER_IP) + ":" + String(SERVER_PORT) + "/api/data");
+}
+
+void loop() {
+  // ตรวจสอบ Wi-Fi
+  if (WiFi.status() != WL_CONNECTED) {           // ถ้า Wi‑Fi หลุด
+    Serial.println("WiFi lost, reconnect...");
+    connectWiFi();                               // เชื่อมใหม่
+  }
+
+  // ตรวจสอบว่าถึงเวลาส่งข้อมูลหรือยัง
+  unsigned long now = millis();                  // เวลาปัจจุบัน (ms)
+  if (now - lastSendMs < SEND_INTERVAL_MS) {     // ยังไม่ถึงรอบส่ง
+    return;                                      // ออกจากรอบนี้ก่อน
+  }
+  lastSendMs = now;                              // บันทึกเวลาที่ส่งล่าสุด
+
+  // อ่านค่า Sensor (Virtual)
+  float t = virtualTemp();
+  float h = virtualHum();
+
+  // สร้าง URL
+  String url = "http://" + String(SERVER_IP) + ":" + String(SERVER_PORT) + "/api/data";
+
+  // สร้าง JSON payload
+  String payload = "{";
+  payload += "\"device_id\":\"" + deviceId + "\",";
+  payload += "\"temp\":" + String(t, 2) + ",";
+  payload += "\"hum\":" + String(h, 2) + ",";
+  payload += "\"source\":\"virtual\"";
+  payload += "}";
+
+  // ส่ง HTTP POST Request
+  HTTPClient http;
+  http.begin(url);                               // ตั้ง URL ปลายทาง
+  http.addHeader("Content-Type", "application/json"); // บอก server ว่าข้อมูลเป็น JSON
+
+  Serial.println("====================");
+  Serial.print("POST ");
+  Serial.println(url);
+  Serial.print("Payload: ");
+  Serial.println(payload);
+
+  int statusCode = http.POST(payload);           // ส่ง HTTP POST
+  Serial.print("Status Code: ");
+  Serial.println(statusCode);
+
+  if (statusCode > 0) {                          // ถ้ารับ response ได้
+    String body = http.getString();              // อ่าน body ที่ server ตอบกลับ
+    Serial.print("Response: ");
+    Serial.println(body);
+  } else {
+    Serial.print("HTTP POST failed, error: ");
+    Serial.println(http.errorToString(statusCode).c_str());
+  }
+
+  http.end();                                    // ปิด connection และคืนทรัพยากร
+  Serial.println("====================");
+}
+</code></pre>
+            </div>
+        </section>
+
+        <!-- Upload & Test Section -->
+        <section id="upload">
+            <h2><span class="icon">🚀</span> Upload โค้ดและทดสอบ</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>แก้ไข Configuration</h3>
+                    <p>แก้ค่าใน section <code>CONFIGURATION</code>:</p>
+                    <div class="code-block">
+                        <pre><code>const char* WIFI_SSID = "YOUR_WIFI_SSID";        // แก้เป็นชื่อ Wi-Fi ของคุณ
+const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";    // แก้เป็นรหัสผ่าน
+const char* SERVER_IP   = "192.168.1.50";        // แก้เป็น IP ของ RPi
+const int   SERVER_PORT = 8000;                  // ถ้า server ใช้ port อื่น ให้แก้</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>เลือก Board และ Port</h3>
+                    <p>ใน Arduino IDE:</p>
+                    <ul>
+                        <li><strong>Tools</strong> → <strong>Board</strong> → เลือก <strong>"ESP32 Dev Module"</strong></li>
+                        <li><strong>Tools</strong> → <strong>Port</strong> → เลือก COM port ที่เสียบ ESP32 อยู่</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Upload โค้ด</h3>
+                    <p>คลิก <strong>Upload</strong> (ปุ่มลูกศร) หรือกด <code>Ctrl+U</code></p>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>รอสักครู่...</strong> การ upload จะใช้เวลา 20-60 วินาที
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>เปิด Serial Monitor</h3>
+                    <p><strong>Tools</strong> → <strong>Serial Monitor</strong> (หรือกด <code>Ctrl+Shift+M</code>)</p>
+                    <div class="warning-box" style="margin-top: 1rem;">
+                        <strong>⚠️ ตั้ง Baud Rate = 115200</strong>
+                        <p>ที่มุมล่างขวาของ Serial Monitor ให้เลือก <code>115200 baud</code></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>ดูผลลัพธ์ใน Serial Monitor</h3>
+                    <p>คุณจะเห็นผลลัพธ์คล้าย ๆ นี้:</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">Serial Monitor Output</span>
+                        </div>
+                        <pre><code>Connecting WiFi...
+WiFi connected, IP = 192.168.1.105
+ESP32 HTTP IoT Client ready
+Sending data to: http://192.168.1.50:8000/api/data
+====================
+POST http://192.168.1.50:8000/api/data
+Payload: {"device_id":"esp32-01","temp":28.45,"hum":62.30,"source":"virtual"}
+Status Code: 200
+Response: {"ok":true,"latest":{"device_id":"esp32-01","temp":28.45,"hum":62.3,"source":"virtual","ts":"2025-02-16T12:34:56.789012"}}
+====================
+====================
+POST http://192.168.1.50:8000/api/data
+Payload: {"device_id":"esp32-01","temp":30.12,"hum":68.75,"source":"virtual"}
+Status Code: 200
+Response: {"ok":true,"latest":{"device_id":"esp32-01","temp":30.12,"hum":68.75,"source":"virtual","ts":"2025-02-16T12:34:59.890123"}}
+====================</code></pre>
+                    </div>
+                    <div class="success-box" style="margin-top: 1rem;">
+                        <strong>✅ สำเร็จ!</strong>
+                        <ul>
+                            <li><strong>Status Code: 200</strong> = ส่งข้อมูลสำเร็จ</li>
+                            <li><strong>Response: {"ok":true,...}</strong> = Server รับข้อมูลแล้ว</li>
+                            <li>ข้อมูลจะส่งทุก 3 วินาที</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <h3>ตรวจสอบใน FastAPI Server</h3>
+                    <p>กลับไปดูที่ terminal ของ Raspberry Pi ที่รัน <code>uvicorn</code>:</p>
+                    <div class="code-block">
+                        <pre><code>[RECV] {'device_id': 'esp32-01', 'temp': 28.45, 'hum': 62.3, 'source': 'virtual', 'ts': '2025-02-16T12:34:56.789012'}
+INFO:     192.168.1.105:54321 - "POST /api/data HTTP/1.1" 200 OK
+[RECV] {'device_id': 'esp32-01', 'temp': 30.12, 'hum': 68.75, 'source': 'virtual', 'ts': '2025-02-16T12:34:59.890123'}
+INFO:     192.168.1.105:54321 - "POST /api/data HTTP/1.1" 200 OK</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <h3>ดูข้อมูลล่าสุดใน Browser</h3>
+                    <p>เปิด: <code>http://&lt;IP_RPI&gt;:8000/api/latest</code></p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span class="code-lang">JSON Response</span>
+                        </div>
+                        <pre><code>{
+  "device_id": "esp32-01",
+  "temp": 30.12,
+  "hum": 68.75,
+  "source": "virtual",
+  "ts": "2025-02-16T12:34:59.890123"
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Troubleshooting Section -->
+        <section id="troubleshooting">
+            <h2><span class="icon">🐛</span> แก้ปัญหาที่พบบ่อย</h2>
+            
+            <div class="card">
+                <h3>1. Wi-Fi เชื่อมต่อไม่ได้</h3>
+                <div class="error-box">
+                    <strong>อาการ:</strong> Serial Monitor แสดง <code>Connecting WiFi...</code> วนลูปไม่หยุด
+                </div>
+                <div class="success-box">
+                    <strong>แก้:</strong>
+                    <ul>
+                        <li>ตรวจสอบ SSID และ Password ถูกต้องไหม (case-sensitive)</li>
+                        <li>ตรวจสอบ Wi-Fi เปิดอยู่และมี signal</li>
+                        <li>ลอง restart ESP32 (กดปุ่ม RESET)</li>
+                        <li>ตรวจสอบว่า Wi-Fi เป็น 2.4GHz (ESP32 ไม่รองรับ 5GHz)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>2. Status Code: -1 หรือ HTTP POST failed</h3>
+                <div class="error-box">
+                    <strong>อาการ:</strong> <code>Status Code: -1</code>, <code>error: connection refused</code>
+                </div>
+                <div class="success-box">
+                    <strong>แก้:</strong>
+                    <ul>
+                        <li><strong>ตรวจสอบ SERVER_IP</strong> ถูกต้องไหม (ใช้ <code>hostname -I</code> บน RPi)</li>
+                        <li><strong>ตรวจสอบ SERVER_PORT</strong> ตรงกับ port ที่ uvicorn รันอยู่ไหม</li>
+                        <li><strong>FastAPI Server รันอยู่ไหม</strong> (ดูใน RPi terminal)</li>
+                        <li><strong>Firewall</strong> บล็อกไหม (ลอง <code>sudo ufw disable</code> ชั่วคราว)</li>
+                        <li>ESP32 และ RPi <strong>อยู่ Wi-Fi เดียวกันไหม</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>3. Status Code: 422 Unprocessable Entity</h3>
+                <div class="error-box">
+                    <strong>อาการ:</strong> Server ตอบกลับ 422, บอกว่า JSON ไม่ถูกต้อง
+                </div>
+                <div class="success-box">
+                    <strong>แก้:</strong>
+                    <ul>
+                        <li>ตรวจสอบ JSON syntax ถูกต้องไหม (เช่น มี <code>\"</code> ครบไหม)</li>
+                        <li>ตรวจสอบ field names ตรงกับ Pydantic model ไหม</li>
+                        <li>ตรวจสอบ data type (temp, hum ต้องเป็นตัวเลข ไม่ใช่ string)</li>
+                        <li>ลองดู response body จะบอกว่าผิดตรงไหน</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>4. Serial Monitor แสดงขยะ (Garbage text)</h3>
+                <div class="error-box">
+                    <strong>อาการ:</strong> เห็นอักษรแปลก ๆ เช่น <code>ÿÿÿÿÿÿÿÿÿ</code>
+                </div>
+                <div class="success-box">
+                    <strong>แก้:</strong>
+                    <ul>
+                        <li>ตั้ง Baud Rate = <strong>115200</strong> ที่มุมล่างขวาของ Serial Monitor</li>
+                        <li>กดปุ่ม RESET บน ESP32 อีกครั้ง</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>5. ข้อมูลส่งช้า หรือไม่สม่ำเสมอ</h3>
+                <div class="error-box">
+                    <strong>อาการ:</strong> บางครั้งส่งช้า หรือข้ามรอบ
+                </div>
+                <div class="success-box">
+                    <strong>แก้:</strong>
+                    <ul>
+                        <li>ตรวจสอบ Wi-Fi signal (ใกล้ router มากขึ้น)</li>
+                        <li>เพิ่ม <code>SEND_INTERVAL_MS</code> ให้มากขึ้น (เช่น 5000 = 5 วินาที)</li>
+                        <li>ตรวจสอบว่า Server ไม่ overload (ถ้ามี Client หลายตัว)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Code Explanation Section -->
+        <section>
+            <h2><span class="icon">📖</span> อธิบายโค้ดแบบละเอียด</h2>
+            
+            <h3>1. Wi-Fi Connection</h3>
+            <div class="code-block">
+                <pre><code>WiFi.mode(WIFI_STA);                   // Station mode
+WiFi.begin(WIFI_SSID, WIFI_PASS);      // เริ่มเชื่อมต่อ
+while (WiFi.status() != WL_CONNECTED)  // รอจนกว่าจะเชื่อมต่อสำเร็จ
+  delay(300);</code></pre>
+            </div>
+            <div class="card">
+                <ul>
+                    <li><code>WIFI_STA</code> = Station mode (เชื่อมต่อกับ Access Point)</li>
+                    <li><code>WiFi.begin()</code> เริ่มเชื่อมต่อ Wi-Fi</li>
+                    <li><code>while</code> loop รอจนกว่าจะเชื่อมต่อสำเร็จ</li>
+                </ul>
+            </div>
+
+            <h3>2. Virtual Sensor</h3>
+            <div class="code-block">
+                <pre><code>float virtualTemp() {
+  return 25.0 + (random(0, 800) / 100.0);  // 25.00–33.00°C
+}
+
+float virtualHum() {
+  return 40.0 + (random(0, 4000) / 100.0); // 40.00–80.00%
+}</code></pre>
+            </div>
+            <div class="card">
+                <p><strong>ทำไมใช้ Virtual Sensor?</strong></p>
+                <ul>
+                    <li>ไม่ต้องต่อฮาร์ดแวร์เพิ่ม</li>
+                    <li>ทดสอบระบบสื่อสารได้ทันที</li>
+                    <li>หลังจากนี้แค่เปลี่ยนฟังก์ชันเป็น <code>readRealSensor()</code></li>
+                </ul>
+            </div>
+
+            <h3>3. สร้าง JSON Payload</h3>
+            <div class="code-block">
+                <pre><code>String payload = "{";
+payload += "\"device_id\":\"" + deviceId + "\",";
+payload += "\"temp\":" + String(t, 2) + ",";
+payload += "\"hum\":" + String(h, 2) + ",";
+payload += "\"source\":\"virtual\"";
+payload += "}";</code></pre>
+            </div>
+            <div class="card">
+                <p><strong>อธิบาย:</strong></p>
+                <ul>
+                    <li><code>\"</code> = Escape character สำหรับใส่ <code>"</code> ใน string</li>
+                    <li><code>String(t, 2)</code> = แปลง float เป็น string ทศนิยม 2 ตำแหน่ง</li>
+                    <li>ผลลัพธ์: <code>{"device_id":"esp32-01","temp":28.45,...}</code></li>
+                </ul>
+            </div>
+
+            <h3>4. ส่ง HTTP POST</h3>
+            <div class="code-block">
+                <pre><code>HTTPClient http;
+http.begin(url);                               // ตั้ง URL
+http.addHeader("Content-Type", "application/json"); // ตั้ง header
+int statusCode = http.POST(payload);           // ส่ง POST
+String body = http.getString();                // อ่าน response
+http.end();                                    // ปิด connection</code></pre>
+            </div>
+            <div class="card">
+                <p><strong>สำคัญ:</strong></p>
+                <ul>
+                    <li><code>Content-Type: application/json</code> บอก server ว่าข้อมูลเป็น JSON</li>
+                    <li><code>http.POST(payload)</code> ส่งข้อมูลและคืน status code</li>
+                    <li><code>http.end()</code> ปิด connection (คืนทรัพยากร)</li>
+                </ul>
+            </div>
+
+            <h3>5. Error Handling</h3>
+            <div class="code-block">
+                <pre><code>if (statusCode > 0) {
+  // สำเร็จ - อ่าน response
+  String body = http.getString();
+} else {
+  // ไม่สำเร็จ - แสดง error
+  Serial.println(http.errorToString(statusCode).c_str());
+}</code></pre>
+            </div>
+            <div class="card">
+                <p><strong>Status Code:</strong></p>
+                <ul>
+                    <li><code>> 0</code> = มี HTTP response (200, 404, 422, etc.)</li>
+                    <li><code>< 0</code> = เกิด error ระดับ connection (เช่น -1 = connection refused)</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Next Steps Section -->
+        <section id="next-steps">
+            <h2><span class="icon">🎉</span> ขั้นต่อไป</h2>
+            
+            <div class="success-box">
+                <h3>ยินดีด้วย! คุณทำสำเร็จแล้ว 🎊</h3>
+                <p>คุณได้สร้างระบบ IoT แบบ Client-Server ด้วย HTTP + JSON สำเร็จแล้ว!</p>
+            </div>
+
+            <h3>สิ่งที่คุณสามารถทำต่อได้</h3>
+            <div class="card">
+                <h4>1. เปลี่ยนเป็น Sensor จริง</h4>
+                <p>แทนที่ <code>virtualTemp()</code> และ <code>virtualHum()</code> ด้วย:</p>
+                <ul>
+                    <li><strong>BME280</strong> (Temperature, Humidity, Pressure) - แนะนำ</li>
+                    <li><strong>DHT22</strong> (Temperature, Humidity)</li>
+                    <li><strong>DS18B20</strong> (Temperature)</li>
+                </ul>
+                <div class="code-block">
+                    <pre><code>// ตัวอย่าง BME280
+#include &lt;Adafruit_BME280.h&gt;
+Adafruit_BME280 bme;
+
+float readTemp() {
+  return bme.readTemperature();
+}
+
+float readHum() {
+  return bme.readHumidity();
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>2. บันทึกข้อมูลใน Database</h4>
+                <p>แก้ไข FastAPI Server ให้เก็บข้อมูลใน:</p>
+                <ul>
+                    <li><strong>SQLite</strong> - ง่ายที่สุด, ไม่ต้องติดตั้งเพิ่ม</li>
+                    <li><strong>PostgreSQL</strong> - Production-grade</li>
+                    <li><strong>MongoDB</strong> - NoSQL, เหมาะกับ JSON</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h4>3. สร้าง Dashboard</h4>
+                <p>แสดงข้อมูลแบบ Real-time:</p>
+                <ul>
+                    <li><strong>Grafana</strong> - Dashboard professional</li>
+                    <li><strong>Chart.js</strong> - Simple web dashboard</li>
+                    <li><strong>Node-RED</strong> - Visual flow-based tool</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h4>4. เพิ่ม Features</h4>
+                <ul>
+                    <li>📱 <strong>Line Notify</strong> - แจ้งเตือนเมื่ออุณหภูมิสูงเกินไป</li>
+                    <li>🔐 <strong>Authentication</strong> - ใช้ API Key หรือ JWT</li>
+                    <li>📊 <strong>Data Analysis</strong> - คำนวณค่าเฉลี่ย, min, max</li>
+                    <li>⚙️ <strong>Control</strong> - เปิด/ปิดอุปกรณ์จากระยะไกล</li>
+                    <li>🌐 <strong>MQTT</strong> - ลองใช้ protocol อื่นแทน HTTP</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h4>5. Deploy เป็น Production</h4>
+                <ul>
+                    <li>ใช้ <code>systemd</code> ให้ FastAPI รันอัตโนมัติ</li>
+                    <li>ตั้ง reverse proxy ด้วย <strong>Nginx</strong></li>
+                    <li>เพิ่ม <strong>HTTPS</strong> ด้วย Let's Encrypt</li>
+                    <li>ตั้ง <strong>logging</strong> และ <strong>monitoring</strong></li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Summary Section -->
+        <section>
+            <h2><span class="icon">🎓</span> สรุป</h2>
+            <div class="card">
+                <p>ในบทนี้เราได้เรียนรู้:</p>
+                <ol>
+                    <li>✅ <strong>เขียนโค้ด ESP32</strong> เพื่อส่งข้อมูล HTTP POST</li>
+                    <li>✅ <strong>ใช้ WiFi.h และ HTTPClient.h</strong> สำหรับสื่อสาร</li>
+                    <li>✅ <strong>สร้าง JSON payload</strong> ด้วย Virtual Sensor</li>
+                    <li>✅ <strong>Debug ด้วย Serial Monitor</strong></li>
+                    <li>✅ <strong>ทดสอบระบบแบบ End-to-End</strong></li>
+                </ol>
+            </div>
+
+            <div class="success-box">
+                <h3>🏆 ระบบที่คุณสร้างขึ้นมา</h3>
+                <ul>
+                    <li>ESP32 อ่านค่า Sensor (virtual) ทุก 3 วินาที</li>
+                    <li>สร้าง JSON payload</li>
+                    <li>ส่งข้อมูลด้วย HTTP POST ไปยัง FastAPI Server</li>
+                    <li>Server validate และเก็บข้อมูล</li>
+                    <li>สามารถดูข้อมูลล่าสุดได้ที่ <code>/api/latest</code></li>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <h3>🌟 สิ่งที่คุณได้เรียนรู้</h3>
+                <ul>
+                    <li>Client-Server Architecture</li>
+                    <li>HTTP Protocol (POST, GET)</li>
+                    <li>REST API Design</li>
+                    <li>JSON Data Format</li>
+                    <li>FastAPI + Pydantic</li>
+                    <li>Arduino/ESP32 Programming</li>
+                    <li>Wi-Fi Communication</li>
+                    <li>Debugging Techniques</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section>
+            <h2><span class="icon">📚</span> แหล่งเรียนรู้เพิ่มเติม</h2>
+            <div class="card">
+                <h3>ESP32</h3>
+                <ul>
+                    <li><a href="https://docs.espressif.com/projects/esp-idf/en/latest/esp32/" target="_blank">ESP32 Official Documentation</a></li>
+                    <li><a href="https://randomnerdtutorials.com/esp32-http-post-requests/" target="_blank">ESP32 HTTP POST Tutorial</a></li>
+                </ul>
+
+                <h3>Arduino Libraries</h3>
+                <ul>
+                    <li><a href="https://github.com/arduino-libraries/ArduinoHttpClient" target="_blank">ArduinoHttpClient Library</a></li>
+                    <li><a href="https://arduinojson.org/" target="_blank">ArduinoJson Library</a></li>
+                </ul>
+
+                <h3>Sensors</h3>
+                <ul>
+                    <li><a href="https://learn.adafruit.com/adafruit-bme280-humidity-barometric-pressure-temperature-sensor-breakout" target="_blank">BME280 Tutorial</a></li>
+                    <li><a href="https://www.artronshop.co.th/article/62/esp32-เบื้องต้น-บทที่-12-การใช้งาน-http" target="_blank">ESP32 HTTP - Artronshop</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 IoT Workshop - ESP32 HTTP Client</p>
+            <div class="footer-links">
+                <a href="lesson-01-introduction.html">← บทที่ 1: Introduction</a>
+                <a href="lesson-02-fastapi-server.html">← บทที่ 2: FastAPI Server</a>
+            </div>
+            <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>
+        </div>
+    </footer>
+</body>
+</html>

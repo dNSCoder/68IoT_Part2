@@ -1,0 +1,19 @@
+# FastAPI Server Dependencies
+# สำหรับ Python 3.8+
+
+# FastAPI framework
+fastapi==0.115.12
+
+# ASGI server สำหรับรัน FastAPI
+uvicorn[standard]==0.35.1
+
+# Data validation (included with FastAPI แต่ระบุเวอร์ชันเพื่อความชัดเจน)
+pydantic==2.10.6
+pydantic-core==2.27.2
+
+# Optional: สำหรับ CORS support
+# python-multipart==0.0.20
+
+# Optional: สำหรับ development
+# httpx==0.28.1  # สำหรับ testing
+# pytest==8.3.5  # สำหรับ unit tests

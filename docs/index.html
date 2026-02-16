@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Workshop - HTTP, FastAPI และ ESP32</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 6rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Lessons Grid */
+        main {
+            padding: 4rem 0;
+        }
+
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .lesson-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.3);
+        }
+
+        .lesson-number {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .lesson-card.secondary .lesson-number {
+            background: var(--secondary);
+        }
+
+        .lesson-card.accent .lesson-number {
+            background: var(--accent);
+        }
+
+        .lesson-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .lesson-card.secondary h2 {
+            color: var(--secondary);
+        }
+
+        .lesson-card.accent h2 {
+            color: var(--accent);
+        }
+
+        .lesson-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .lesson-topics {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .lesson-topics li {
+            padding: 0.5rem 0;
+            color: var(--text-muted);
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .lesson-topics li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+        }
+
+        /* Info Section */
+        .info-section {
+            background: var(--bg-card);
+            padding: 3rem;
+            border-radius: 12px;
+            margin: 4rem 0;
+            border: 1px solid var(--border);
+        }
+
+        .info-section h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item h3 {
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-item p {
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        footer p {
+            color: var(--text-muted);
+            margin-top: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .lessons-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="container">
+            <h1>🚀 IoT Workshop</h1>
+            <p class="hero-subtitle">เรียนรู้การสร้างระบบ IoT ด้วย HTTP, FastAPI และ ESP32</p>
+        </div>
+    </div>
+
+    <main class="container">
+        <section>
+            <h2 style="text-align: center; color: var(--primary); margin-bottom: 3rem;">📚 บทเรียนทั้งหมด</h2>
+            
+            <div class="lessons-grid">
+                <!-- Lesson 1 -->
+                <div class="lesson-card" onclick="window.location.href='lesson-01-introduction.html'">
+                    <div class="lesson-number">1</div>
+                    <h2>Introduction</h2>
+                    <p>HTTP, REST API และ JSON - พื้นฐานสำคัญของ IoT</p>
+                    <ul class="lesson-topics">
+                        <li>Client-Server Architecture</li>
+                        <li>HTTP Protocol & Methods</li>
+                        <li>REST API Design</li>
+                        <li>JSON Data Format</li>
+                        <li>Request-Response Flow</li>
+                    </ul>
+                    <a href="lesson-01-introduction.html" class="btn">เริ่มเรียน →</a>
+                </div>
+
+                <!-- Lesson 2 -->
+                <div class="lesson-card secondary" onclick="window.location.href='lesson-02-fastapi-server.html'">
+                    <div class="lesson-number">2</div>
+                    <h2>FastAPI Server</h2>
+                    <p>สร้าง REST API Server บน Raspberry Pi</p>
+                    <ul class="lesson-topics">
+                        <li>ติดตั้ง FastAPI & Uvicorn</li>
+                        <li>Pydantic Data Validation</li>
+                        <li>สร้าง API Endpoints</li>
+                        <li>Swagger UI Documentation</li>
+                        <li>ทดสอบและ Debug</li>
+                    </ul>
+                    <a href="lesson-02-fastapi-server.html" class="btn btn-secondary">เริ่มเรียน →</a>
+                </div>
+
+                <!-- Lesson 3 -->
+                <div class="lesson-card accent" onclick="window.location.href='lesson-03-esp32-client.html'">
+                    <div class="lesson-number">3</div>
+                    <h2>ESP32 Client</h2>
+                    <p>ส่งข้อมูลจาก ESP32 ไปยัง FastAPI Server</p>
+                    <ul class="lesson-topics">
+                        <li>WiFi Connection</li>
+                        <li>HTTP POST Requests</li>
+                        <li>JSON Payload Creation</li>
+                        <li>Virtual Sensor Data</li>
+                        <li>Serial Monitor Debug</li>
+                    </ul>
+                    <a href="lesson-03-esp32-client.html" class="btn btn-accent">เริ่มเรียน →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- What You'll Learn -->
+        <section class="info-section">
+            <h2>🎯 สิ่งที่คุณจะได้เรียนรู้</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-icon">🌐</div>
+                    <h3>การสื่อสาร</h3>
+                    <p>HTTP Protocol, REST API, และ JSON สำหรับ IoT</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">🖥️</div>
+                    <h3>Backend</h3>
+                    <p>FastAPI, Pydantic, และ Uvicorn Server</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">📡</div>
+                    <h3>IoT Device</h3>
+                    <p>ESP32, WiFi, และ HTTPClient Library</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">🔧</div>
+                    <h3>Hands-on</h3>
+                    <p>ลงมือทำจริง พร้อมโค้ดและวิธีแก้ปัญหา</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prerequisites -->
+        <section class="info-section">
+            <h2>📋 สิ่งที่ต้องเตรียม</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-icon">🥧</div>
+                    <h3>Raspberry Pi</h3>
+                    <p>รุ่น 4 หรือ 5 พร้อม Python 3.8+</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">📱</div>
+                    <h3>ESP32</h3>
+                    <p>Development Board พร้อม USB Cable</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">📡</div>
+                    <h3>Wi-Fi</h3>
+                    <p>Network เดียวกันสำหรับ RPi และ ESP32</p>
+                </div>
+                <div class="info-item">
+                    <div class="info-icon">💻</div>
+                    <h3>Arduino IDE</h3>
+                    <p>สำหรับเขียนและ upload โค้ด ESP32</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Overview -->
+        <section class="info-section">
+            <h2>🏗️ ระบบที่เราจะสร้าง</h2>
+            <div style="background: var(--bg-main); padding: 2rem; border-radius: 8px; text-align: center; margin-top: 2rem;">
+                <pre style="display: inline-block; text-align: left; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; line-height: 1.6;">
+┌─────────────────────┐                    ┌──────────────────────┐
+│                     │                    │                      │
+│   ESP32 (Client)    │                    │  Raspberry Pi 4/5    │
+│                     │                    │     (Server)         │
+│   Virtual Sensor    │   HTTP POST        │                      │
+│   - Temperature     │═══════════════════>│   FastAPI Server     │
+│   - Humidity        │   JSON Data        │   - Receives Data    │
+│                     │                    │   - Validates JSON   │
+│   WiFi Connected    │   HTTP Response    │   - Stores Latest    │
+│                     │<═══════════════════│   - /docs UI         │
+│                     │   200 OK           │                      │
+└─────────────────────┘                    └──────────────────────┘
+        </pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 IoT Workshop - HTTP, FastAPI และ ESP32</p>
+            <p>Made with ❤️ for IoT Education</p>
+        </div>
+    </footer>
+
+    <script>
+        // Add animation on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.lesson-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.2}s`;
+            });
+        });
+    </script>
+</body>
+</html>
