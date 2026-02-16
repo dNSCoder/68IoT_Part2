@@ -418,10 +418,73 @@
         .icon {
             font-style: normal;
         }
+            /* Topbar (Course navigation) */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            gap: 1rem;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .topbar-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .topbar-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            transition: 0.2s ease;
+        }
+        .topbar-links a:hover {
+            color: var(--text-primary);
+            background: rgba(37, 99, 235, 0.14);
+            border-color: rgba(37, 99, 235, 0.25);
+        }
+        .topbar-links a.active {
+            color: var(--text-primary);
+            background: rgba(37, 99, 235, 0.22);
+            border-color: rgba(37, 99, 235, 0.35);
+        }
+        @media (max-width: 900px) {
+            .topbar-links { display: none; }
+        }
     </style>
 </head>
 <body>
-    <header>
+    <div class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html">🏠 IoT Workshop</a>
+            <div class="topbar-links" aria-label="Course navigation">
+                <a href="lesson-01-introduction.html" class="active">บทที่ 1</a>
+                <a href="lesson-02-fastapi-server.html">บทที่ 2</a>
+                <a href="lesson-03-esp32-client.html">บทที่ 3</a>
+            </div>
+        </div>
+    </div>
+<header id="top">
         <div class="container">
             <div class="lesson-badge">บทที่ 1 จาก 3</div>
             <h1><span class="icon">📚</span> Introduction</h1>
@@ -432,7 +495,8 @@
     <nav>
         <div class="container">
             <ul>
-                <li><a href="#overview">ภาพรวม</a></li>
+                
+                <li><a href="index.html">🏠 Home</a></li><li><a href="#overview">ภาพรวม</a></li>
                 <li><a href="#client-server">Client-Server</a></li>
                 <li><a href="#http">HTTP Protocol</a></li>
                 <li><a href="#rest">REST API</a></li>
@@ -1090,7 +1154,9 @@ def receive(data: SensorData):
         <div class="container">
             <p>&copy; 2025 IoT Workshop - HTTP, REST API และ JSON</p>
             <div class="footer-links">
-                <a href="lesson-02-fastapi-server.html">บทที่ 2: FastAPI Server →</a>
+                
+                <a href="index.html">🏠 Home (Gateway)</a>
+<a href="lesson-02-fastapi-server.html">บทที่ 2: FastAPI Server →</a>
                 <a href="lesson-03-esp32-client.html">บทที่ 3: ESP32 Client →</a>
             </div>
             <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>

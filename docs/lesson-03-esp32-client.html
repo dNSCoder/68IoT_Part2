@@ -421,10 +421,73 @@
         .icon {
             font-style: normal;
         }
+            /* Topbar (Course navigation) */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            gap: 1rem;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .topbar-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .topbar-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            transition: 0.2s ease;
+        }
+        .topbar-links a:hover {
+            color: var(--text-primary);
+            background: rgba(37, 99, 235, 0.14);
+            border-color: rgba(37, 99, 235, 0.25);
+        }
+        .topbar-links a.active {
+            color: var(--text-primary);
+            background: rgba(37, 99, 235, 0.22);
+            border-color: rgba(37, 99, 235, 0.35);
+        }
+        @media (max-width: 900px) {
+            .topbar-links { display: none; }
+        }
     </style>
 </head>
 <body>
-    <header>
+    <div class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html">🏠 IoT Workshop</a>
+            <div class="topbar-links" aria-label="Course navigation">
+                <a href="lesson-01-introduction.html">บทที่ 1</a>
+                <a href="lesson-02-fastapi-server.html">บทที่ 2</a>
+                <a href="lesson-03-esp32-client.html" class="active">บทที่ 3</a>
+            </div>
+        </div>
+    </div>
+<header id="top">
         <div class="container">
             <div class="lesson-badge">บทที่ 3 จาก 3</div>
             <h1><span class="icon">📡</span> ESP32 HTTP Client</h1>
@@ -435,7 +498,8 @@
     <nav>
         <div class="container">
             <ul>
-                <li><a href="#overview">ภาพรวม</a></li>
+                
+                <li><a href="index.html">🏠 Home</a></li><li><a href="#overview">ภาพรวม</a></li>
                 <li><a href="#prerequisites">เตรียมความพร้อม</a></li>
                 <li><a href="#libraries">Arduino Libraries</a></li>
                 <li><a href="#code">โค้ด ESP32</a></li>
@@ -608,21 +672,154 @@
         </section>
 
         <!-- Code Section -->
+        
         <section id="code">
-            <h2><span class="icon">💻</span> โค้ด ESP32 Client</h2>
-            
+            <h2><span class="icon">💻</span> โค้ด ESP32 / Arduino Client (ทำทีละขั้นตอน)</h2>
+
             <div class="warning-box">
                 <strong>⚠️ อย่าลืมแก้ไข Config!</strong>
                 <p>แก้ค่าต่อไปนี้ให้ตรงกับระบบของคุณ:</p>
                 <ul>
-                    <li><code>WIFI_SSID</code> - ชื่อ Wi-Fi ของคุณ</li>
-                    <li><code>WIFI_PASS</code> - รหัสผ่าน Wi-Fi</li>
-                    <li><code>SERVER_IP</code> - IP ของ Raspberry Pi</li>
-                    <li><code>SERVER_PORT</code> - Port ของ FastAPI (ปกติ 8000)</li>
+                    <li><code>WIFI_SSID</code> / <code>WIFI_PASS</code> — ในห้องแลปมักใช้ <code>UBU-IoT</code> + รหัสผ่านที่กำหนด</li>
+                    <li><code>SERVER_IP</code> — IP ของ Raspberry Pi (ดูได้ด้วย <code>hostname -I</code>)</li>
+                    <li><code>SERVER_PORT</code> — Port ของ FastAPI (ปกติ 8000)</li>
                 </ul>
             </div>
 
-            <h3>โค้ดเต็ม (iot_http_client.ino)</h3>
+            <h3>Step 1: ทดสอบต่อ Wi‑Fi ให้ได้ก่อน</h3>
+            <p>เริ่มจากโค้ดสั้น ๆ เพื่อยืนยันว่า ESP32 ต่อ <code>UBU-IoT</code> ได้ และได้ IP แล้ว</p>
+            <div class="code-block">
+                <div class="code-header"><span class="code-lang">C++ / Arduino</span></div>
+                <pre><code>#include &lt;WiFi.h&gt;
+
+// ===== CONFIG =====
+const char* WIFI_SSID = &quot;UBU-IoT&quot;;
+const char* WIFI_PASS = &quot;&lt;UBU_IoT_PASSWORD&gt;&quot;;
+// ================
+
+void connectWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+
+  Serial.print(&quot;Connecting WiFi&quot;);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(300);
+    Serial.print(&quot;.&quot;);
+  }
+  Serial.println();
+  Serial.print(&quot;WiFi connected, IP = &quot;);
+  Serial.println(WiFi.localIP());
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(300);
+  connectWiFi();
+}
+
+void loop() {
+  // ยังไม่ทำอะไร (แค่ทดสอบว่า Wi‑Fi ต่อได้)
+}</code></pre>
+            </div>
+
+            <h3>Step 2: ทดสอบยิง HTTP GET ไปหา Server</h3>
+            <p>เมื่อ Wi‑Fi ต่อได้แล้ว ให้ลองเรียกหน้า <code>/</code> ของ FastAPI เพื่อเช็คว่าเห็น response กลับมา</p>
+            <div class="code-block">
+                <div class="code-header"><span class="code-lang">C++ / Arduino</span></div>
+                <pre><code>#include &lt;WiFi.h&gt;
+#include &lt;HTTPClient.h&gt;
+
+// ===== CONFIG =====
+const char* WIFI_SSID = &quot;UBU-IoT&quot;;
+const char* WIFI_PASS = &quot;&lt;UBU_IoT_PASSWORD&gt;&quot;;
+
+const char* SERVER_IP   = &quot;192.168.1.50&quot;;  // IP ของ Raspberry Pi
+const int   SERVER_PORT = 8000;
+// ================
+
+void connectWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  Serial.print(&quot;Connecting WiFi&quot;);
+  while (WiFi.status() != WL_CONNECTED) { delay(300); Serial.print(&quot;.&quot;); }
+  Serial.println();
+  Serial.print(&quot;WiFi connected, IP = &quot;); Serial.println(WiFi.localIP());
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(300);
+  connectWiFi();
+
+  String url = &quot;http://&quot; + String(SERVER_IP) + &quot;:&quot; + String(SERVER_PORT) + &quot;/&quot;;
+  HTTPClient http;
+  http.begin(url);
+
+  Serial.print(&quot;GET &quot;); Serial.println(url);
+  int code = http.GET();
+  Serial.print(&quot;Status Code: &quot;); Serial.println(code);
+
+  if (code &gt; 0) {
+    Serial.println(&quot;Response:&quot;);
+    Serial.println(http.getString());
+  }
+  http.end();
+}
+
+void loop() {
+  // ดูผลใน Serial Monitor
+}</code></pre>
+            </div>
+
+            <h3>Step 3: สร้าง JSON Payload ให้ถูกต้อง</h3>
+            <p>FastAPI ในบทที่ 2 รอ JSON รูปแบบนี้: <code>{device_id, temp, hum, source}</code></p>
+            <div class="code-block">
+                <div class="code-header"><span class="code-lang">C++ / Arduino</span></div>
+                <pre><code>String deviceId = &quot;esp32-01&quot;;
+
+float t = 28.35;
+float h = 62.10;
+
+String payload = &quot;{&quot;;
+payload += &quot;\&quot;device_id\&quot;:\&quot;&quot; + deviceId + &quot;\&quot;,&quot;;
+payload += &quot;\&quot;temp\&quot;:&quot; + String(t, 2) + &quot;,&quot;;
+payload += &quot;\&quot;hum\&quot;:&quot; + String(h, 2) + &quot;,&quot;;
+payload += &quot;\&quot;source\&quot;:\&quot;virtual\&quot;&quot;;
+payload += &quot;}&quot;;
+
+Serial.println(payload);</code></pre>
+            </div>
+
+            <h3>Step 4: แยกฟังก์ชันส่ง HTTP POST</h3>
+            <p>ทำเป็นฟังก์ชันเพื่อจะรวมกับ loop ได้ง่าย และ debug สะดวก</p>
+            <div class="code-block">
+                <div class="code-header"><span class="code-lang">C++ / Arduino</span></div>
+                <pre><code>bool postJson(const String&amp; url, const String&amp; payload) {
+  HTTPClient http;
+  http.begin(url);
+  http.addHeader(&quot;Content-Type&quot;, &quot;application/json&quot;);
+
+  int statusCode = http.POST(payload);
+
+  Serial.print(&quot;Status Code: &quot;);
+  Serial.println(statusCode);
+
+  if (statusCode &gt; 0) {
+    Serial.print(&quot;Response: &quot;);
+    Serial.println(http.getString());
+    http.end();
+    return true;
+  } else {
+    Serial.print(&quot;HTTP POST failed: &quot;);
+    Serial.println(http.errorToString(statusCode).c_str());
+    http.end();
+    return false;
+  }
+}</code></pre>
+            </div>
+
+            <h3>Step 5: รวมทุกอย่างเป็นโค้ดเต็ม</h3>
+            <p>โค้ดเต็มด้านล่างคือการรวม Step 1–4 + ส่งข้อมูลทุก 3 วินาที (Virtual Sensor)</p>
             <div class="code-block">
                 <div class="code-header">
                     <span class="code-lang">C++ / Arduino</span>
@@ -631,116 +828,111 @@
 #include &lt;HTTPClient.h&gt;      // HTTP client (ใช้ส่ง GET/POST)
 
 // ===== CONFIGURATION - แก้ตรงนี้ให้ตรงกับระบบของคุณ =====
-const char* WIFI_SSID = "YOUR_WIFI_SSID";        // ชื่อ Wi‑Fi
-const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";    // รหัส Wi‑Fi
+const char* WIFI_SSID = &quot;UBU-IoT&quot;;                 // ชื่อ Wi‑Fi
+const char* WIFI_PASS = &quot;&lt;UBU_IoT_PASSWORD&gt;&quot;;      // รหัส Wi‑Fi (ขอจากผู้ดูแล)
 
-const char* SERVER_IP   = "192.168.1.50";        // IP ของ Raspberry Pi
-const int   SERVER_PORT = 8000;                  // Port ของ FastAPI
+const char* SERVER_IP   = &quot;192.168.1.50&quot;;          // IP ของ Raspberry Pi
+const int   SERVER_PORT = 8000;                    // Port ของ FastAPI
 
-String deviceId = "esp32-01";                    // ตั้งชื่ออุปกรณ์ (ไม่ซ้ำกัน)
+String deviceId = &quot;esp32-01&quot;;                      // ตั้งชื่ออุปกรณ์ (ไม่ซ้ำกัน)
 // =========================================================
 
-unsigned long lastSendMs = 0;                    // เวลาล่าสุดที่ส่งข้อมูล
-const unsigned long SEND_INTERVAL_MS = 3000;     // ส่งทุก 3 วินาที
+unsigned long lastSendMs = 0;
+const unsigned long SEND_INTERVAL_MS = 3000;       // ส่งทุก 3 วินาที
 
-// ฟังก์ชันเชื่อมต่อ Wi-Fi
+// เชื่อมต่อ Wi‑Fi
 void connectWiFi() {
-  WiFi.mode(WIFI_STA);                           // ตั้งโหมดเป็น Station (เชื่อม Wi‑Fi)
-  WiFi.begin(WIFI_SSID, WIFI_PASS);              // เริ่มเชื่อมต่อด้วย SSID/PASS
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-  Serial.print("Connecting WiFi");
-  while (WiFi.status() != WL_CONNECTED) {        // รอจนกว่าจะเชื่อมต่อสำเร็จ
+  Serial.print(&quot;Connecting WiFi&quot;);
+  while (WiFi.status() != WL_CONNECTED) {
     delay(300);
-    Serial.print(".");
+    Serial.print(&quot;.&quot;);
   }
-
   Serial.println();
-  Serial.print("WiFi connected, IP = ");
-  Serial.println(WiFi.localIP());                // แสดง IP ของ ESP32
+  Serial.print(&quot;WiFi connected, IP = &quot;);
+  Serial.println(WiFi.localIP());
 }
 
-// ฟังก์ชันสุ่มค่าอุณหภูมิ (Virtual Sensor)
-float virtualTemp() {
-  return 25.0 + (random(0, 800) / 100.0);        // สุ่ม 25.00–33.00°C
-}
+// Virtual Sensor (สาธิต)
+float virtualTemp() { return 25.0 + (random(0, 800) / 100.0); }  // 25.00–33.00°C
+float virtualHum()  { return 40.0 + (random(0, 4000) / 100.0); } // 40.00–80.00%
 
-// ฟังก์ชันสุ่มค่าความชื้น (Virtual Sensor)
-float virtualHum() {
-  return 40.0 + (random(0, 4000) / 100.0);       // สุ่ม 40.00–80.00%
+// ส่ง JSON ไปที่ Server
+bool postJson(const String&amp; url, const String&amp; payload) {
+  HTTPClient http;
+  http.begin(url);
+  http.addHeader(&quot;Content-Type&quot;, &quot;application/json&quot;);
+
+  int statusCode = http.POST(payload);
+
+  Serial.print(&quot;Status Code: &quot;);
+  Serial.println(statusCode);
+
+  if (statusCode &gt; 0) {
+    Serial.print(&quot;Response: &quot;);
+    Serial.println(http.getString());
+    http.end();
+    return true;
+  } else {
+    Serial.print(&quot;HTTP POST failed: &quot;);
+    Serial.println(http.errorToString(statusCode).c_str());
+    http.end();
+    return false;
+  }
 }
 
 void setup() {
-  Serial.begin(115200);                          // เปิด Serial สำหรับ debug
+  Serial.begin(115200);
   delay(300);
 
-  randomSeed(micros());                          // ทำให้ random ไม่ซ้ำเดิม
-  connectWiFi();                                 // เชื่อม Wi‑Fi
+  randomSeed(micros());
+  connectWiFi();
 
-  Serial.println("ESP32 HTTP IoT Client ready");
-  Serial.println("Sending data to: http://" + String(SERVER_IP) + ":" + String(SERVER_PORT) + "/api/data");
+  Serial.println(&quot;ESP32 HTTP IoT Client ready&quot;);
 }
 
 void loop() {
-  // ตรวจสอบ Wi-Fi
-  if (WiFi.status() != WL_CONNECTED) {           // ถ้า Wi‑Fi หลุด
-    Serial.println("WiFi lost, reconnect...");
-    connectWiFi();                               // เชื่อมใหม่
+  // ถ้า Wi‑Fi หลุด → ต่อใหม่
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println(&quot;WiFi lost, reconnect...&quot;);
+    connectWiFi();
   }
 
-  // ตรวจสอบว่าถึงเวลาส่งข้อมูลหรือยัง
-  unsigned long now = millis();                  // เวลาปัจจุบัน (ms)
-  if (now - lastSendMs < SEND_INTERVAL_MS) {     // ยังไม่ถึงรอบส่ง
-    return;                                      // ออกจากรอบนี้ก่อน
-  }
-  lastSendMs = now;                              // บันทึกเวลาที่ส่งล่าสุด
+  // ส่งเป็นรอบเวลา
+  unsigned long now = millis();
+  if (now - lastSendMs &lt; SEND_INTERVAL_MS) return;
+  lastSendMs = now;
 
-  // อ่านค่า Sensor (Virtual)
+  // อ่านค่า (Virtual)
   float t = virtualTemp();
   float h = virtualHum();
 
-  // สร้าง URL
-  String url = "http://" + String(SERVER_IP) + ":" + String(SERVER_PORT) + "/api/data";
+  // URL ปลายทาง
+  String url = &quot;http://&quot; + String(SERVER_IP) + &quot;:&quot; + String(SERVER_PORT) + &quot;/api/data&quot;;
 
-  // สร้าง JSON payload
-  String payload = "{";
-  payload += "\"device_id\":\"" + deviceId + "\",";
-  payload += "\"temp\":" + String(t, 2) + ",";
-  payload += "\"hum\":" + String(h, 2) + ",";
-  payload += "\"source\":\"virtual\"";
-  payload += "}";
+  // JSON payload
+  String payload = &quot;{&quot;;
+  payload += &quot;\&quot;device_id\&quot;:\&quot;&quot; + deviceId + &quot;\&quot;,&quot;;
+  payload += &quot;\&quot;temp\&quot;:&quot; + String(t, 2) + &quot;,&quot;;
+  payload += &quot;\&quot;hum\&quot;:&quot; + String(h, 2) + &quot;,&quot;;
+  payload += &quot;\&quot;source\&quot;:\&quot;virtual\&quot;&quot;;
+  payload += &quot;}&quot;;
 
-  // ส่ง HTTP POST Request
-  HTTPClient http;
-  http.begin(url);                               // ตั้ง URL ปลายทาง
-  http.addHeader("Content-Type", "application/json"); // บอก server ว่าข้อมูลเป็น JSON
-
-  Serial.println("====================");
-  Serial.print("POST ");
+  Serial.println(&quot;====================&quot;);
+  Serial.print(&quot;POST &quot;);
   Serial.println(url);
-  Serial.print("Payload: ");
+  Serial.print(&quot;Payload: &quot;);
   Serial.println(payload);
 
-  int statusCode = http.POST(payload);           // ส่ง HTTP POST
-  Serial.print("Status Code: ");
-  Serial.println(statusCode);
+  postJson(url, payload);
 
-  if (statusCode > 0) {                          // ถ้ารับ response ได้
-    String body = http.getString();              // อ่าน body ที่ server ตอบกลับ
-    Serial.print("Response: ");
-    Serial.println(body);
-  } else {
-    Serial.print("HTTP POST failed, error: ");
-    Serial.println(http.errorToString(statusCode).c_str());
-  }
-
-  http.end();                                    // ปิด connection และคืนทรัพยากร
-  Serial.println("====================");
-}
-</code></pre>
+  Serial.println(&quot;====================&quot;);
+}</code></pre>
             </div>
         </section>
-
-        <!-- Upload & Test Section -->
+<!-- Upload & Test Section -->
         <section id="upload">
             <h2><span class="icon">🚀</span> Upload โค้ดและทดสอบ</h2>
             
@@ -749,9 +941,10 @@ void loop() {
                 <div class="step-content">
                     <h3>แก้ไข Configuration</h3>
                     <p>แก้ค่าใน section <code>CONFIGURATION</code>:</p>
+<p class="muted">หมายเหตุ: ESP32 และ Raspberry Pi ควรอยู่ Wi‑Fi วงเดียวกัน (เช่น <code>UBU-IoT</code>) เพื่อให้ยิงหา IP ของ RPi ได้</p>
                     <div class="code-block">
-                        <pre><code>const char* WIFI_SSID = "YOUR_WIFI_SSID";        // แก้เป็นชื่อ Wi-Fi ของคุณ
-const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";    // แก้เป็นรหัสผ่าน
+                        <pre><code>const char* WIFI_SSID = "UBU-IoT";                 // ชื่อ Wi‑Fi ในห้องแลป (หรือ Wi‑Fi ของคุณ)
+const char* WIFI_PASS = "<UBU_IoT_PASSWORD>";      // รหัสผ่านที่กำหนด (อย่าใส่ลง repo)
 const char* SERVER_IP   = "192.168.1.50";        // แก้เป็น IP ของ RPi
 const int   SERVER_PORT = 8000;                  // ถ้า server ใช้ port อื่น ให้แก้</code></pre>
                     </div>
@@ -1185,7 +1378,9 @@ float readHum() {
         <div class="container">
             <p>&copy; 2025 IoT Workshop - ESP32 HTTP Client</p>
             <div class="footer-links">
-                <a href="lesson-01-introduction.html">← บทที่ 1: Introduction</a>
+                
+                <a href="index.html">🏠 Home (Gateway)</a>
+<a href="lesson-01-introduction.html">← บทที่ 1: Introduction</a>
                 <a href="lesson-02-fastapi-server.html">← บทที่ 2: FastAPI Server</a>
             </div>
             <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>

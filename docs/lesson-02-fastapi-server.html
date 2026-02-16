@@ -404,10 +404,73 @@
         .icon {
             font-style: normal;
         }
+            /* Topbar (Course navigation) */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            gap: 1rem;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .topbar-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .topbar-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            transition: 0.2s ease;
+        }
+        .topbar-links a:hover {
+            color: var(--text-primary);
+            background: rgba(37, 99, 235, 0.14);
+            border-color: rgba(37, 99, 235, 0.25);
+        }
+        .topbar-links a.active {
+            color: var(--text-primary);
+            background: rgba(37, 99, 235, 0.22);
+            border-color: rgba(37, 99, 235, 0.35);
+        }
+        @media (max-width: 900px) {
+            .topbar-links { display: none; }
+        }
     </style>
 </head>
 <body>
-    <header>
+    <div class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html">🏠 IoT Workshop</a>
+            <div class="topbar-links" aria-label="Course navigation">
+                <a href="lesson-01-introduction.html">บทที่ 1</a>
+                <a href="lesson-02-fastapi-server.html" class="active">บทที่ 2</a>
+                <a href="lesson-03-esp32-client.html">บทที่ 3</a>
+            </div>
+        </div>
+    </div>
+<header id="top">
         <div class="container">
             <div class="lesson-badge">บทที่ 2 จาก 3</div>
             <h1><span class="icon">🖥️</span> FastAPI Server</h1>
@@ -418,9 +481,11 @@
     <nav>
         <div class="container">
             <ul>
-                <li><a href="#overview">ภาพรวม</a></li>
+                
+                <li><a href="index.html">🏠 Home</a></li><li><a href="#overview">ภาพรวม</a></li>
                 <li><a href="#prerequisites">เตรียมความพร้อม</a></li>
-                <li><a href="#setup">ติดตั้ง FastAPI</a></li>
+                                <li><a href="#wifi-setup">ตั้งค่า Wi‑Fi (UBU‑IoT)</a></li>
+<li><a href="#setup">ติดตั้ง FastAPI</a></li>
                 <li><a href="#create-api">สร้าง API</a></li>
                 <li><a href="#run-server">รัน Server</a></li>
                 <li><a href="#test">ทดสอบ API</a></li>
@@ -493,6 +558,78 @@
                 <br>ตัวอย่าง: <code>192.168.1.50</code>
             </div>
         </section>
+        <section id="wifi-setup">
+            <h2><span class="icon">📶</span> ตั้งค่า Wi‑Fi บน Raspberry Pi (UBU‑IoT)</h2>
+
+            <p>ขั้นตอนนี้จะพาเชื่อมต่อ Raspberry Pi เข้ากับเครือข่าย <code>UBU-IoT</code> เพื่อให้เครื่องทำหน้าที่เป็น Server และรับข้อมูลจากอุปกรณ์ IoT ได้</p>
+
+            <div class="warning-box">
+                <strong>🔐 เรื่องรหัสผ่าน</strong>
+                <p>ให้ใช้รหัสผ่าน <strong>ที่อาจารย์/ผู้ดูแลระบบกำหนด</strong> (อย่าใส่รหัสผ่านจริงลงใน Git/เอกสารสาธารณะ)</p>
+            </div>
+
+            <h3>วิธีที่ 1: เชื่อมต่อผ่านหน้าจอ (GUI)</h3>
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <p>คลิกไอคอนเครือข่าย (Wi‑Fi) มุมขวาบน → เลือก <code>UBU-IoT</code></p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <p>กรอกรหัสผ่าน (Password) → กด Connect</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <p>รอจนขึ้นว่า Connected แล้วลองเปิดเว็บหรือ ping เพื่อทดสอบ</p>
+                </div>
+            </div>
+
+            <h3>วิธีที่ 2: เชื่อมต่อผ่าน Terminal (แนะนำสำหรับเครื่องที่ไม่มีจอ)</h3>
+
+            <p><strong>ดูรายชื่อ Wi‑Fi รอบตัว</strong></p>
+            <div class="code-block">
+                <div class="code-header"><span class="code-lang">Bash</span></div>
+                <pre><code>sudo nmcli dev wifi list</code></pre>
+            </div>
+
+            <p><strong>เชื่อมต่อเครือข่าย UBU‑IoT</strong></p>
+            <div class="code-block">
+                <div class="code-header"><span class="code-lang">Bash</span></div>
+                <pre><code>sudo nmcli dev wifi connect "UBU-IoT" password "&lt;UBU_IoT_PASSWORD&gt;"</code></pre>
+            </div>
+
+            <div class="info-box">
+                <strong>Tip:</strong> ถ้า Wi‑Fi มีชื่อสะกด/ตัวพิมพ์เล็กใหญ่ต่างกัน ให้คัดลอกชื่อจากคำสั่ง <code>nmcli dev wifi list</code> มาใช้ตรง ๆ
+            </div>
+
+            <h3>ตรวจสอบการเชื่อมต่อ</h3>
+            <div class="code-block">
+                <div class="code-header"><span class="code-lang">Bash</span></div>
+                <pre><code># ดู IP ของ wlan0
+ip a show wlan0
+
+# ทดสอบออกอินเทอร์เน็ต (ถ้าเครือข่ายอนุญาต)
+ping -c 4 8.8.8.8
+ping -c 4 google.com
+
+# ดู IP แบบเร็ว ๆ
+hostname -I</code></pre>
+            </div>
+
+            <h3>ถ้าเชื่อมไม่ติด ให้เช็คสิ่งนี้</h3>
+            <ul>
+                <li>เช็คว่า Wi‑Fi บน Pi เปิดอยู่ และเห็น <code>UBU-IoT</code> ในรายการ</li>
+                <li>รหัสผ่านถูกต้อง (ขอจากผู้ดูแล/อาจารย์)</li>
+                <li>ลองรีสตาร์ท network: <code>sudo systemctl restart NetworkManager</code></li>
+                <li>ถ้าใช้ไฟเลี้ยงไม่พอ อาจทำให้ Wi‑Fi หลุด ๆ ติด ๆ (แนะนำใช้ Adapter ตามสเปก)</li>
+            </ul>
+        </section>
+
+
 
         <!-- Setup Section -->
         <section id="setup">
@@ -1087,7 +1224,9 @@ uvicorn app:app --host 0.0.0.0 --port 8001</code></pre>
         <div class="container">
             <p>&copy; 2025 IoT Workshop - FastAPI Server บน Raspberry Pi</p>
             <div class="footer-links">
-                <a href="lesson-01-introduction.html">← บทที่ 1: Introduction</a>
+                
+                <a href="index.html">🏠 Home (Gateway)</a>
+<a href="lesson-01-introduction.html">← บทที่ 1: Introduction</a>
                 <a href="lesson-03-esp32-client.html">บทที่ 3: ESP32 Client →</a>
             </div>
             <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>
