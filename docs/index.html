@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Workshop - HTTP, FastAPI และ ESP32</title>
+    <title>IoT Workshop - HTTP, FastAPI และ Nano 33 IoT</title>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -337,14 +337,16 @@
             <div class="topbar-links" aria-label="Course navigation">
                 <a href="lesson-01-introduction.html">บทที่ 1</a>
                 <a href="lesson-02-fastapi-server.html">บทที่ 2</a>
-                <a href="lesson-03-esp32-client.html">บทที่ 3</a>
+                <a href="lesson-03-nano33iot-client.html">บทที่ 3</a>
+                <a href="lesson-04-motion-detection.html">บทที่ 4</a>
+                <a href="lesson-04-motion-detection.html">บทที่ 4</a>
             </div>
         </div>
     </div>
 <div class="hero">
         <div class="container">
             <h1>🚀 IoT Workshop</h1>
-            <p class="hero-subtitle">เรียนรู้การสร้างระบบ IoT ด้วย HTTP, FastAPI และ ESP32</p>
+            <p class="hero-subtitle">เรียนรู้การสร้างระบบ IoT ด้วย HTTP, FastAPI และ Arduino Nano 33 IoT</p>
         </div>
     </div>
 
@@ -384,10 +386,10 @@
                 </div>
 
                 <!-- Lesson 3 -->
-                <div class="lesson-card accent" onclick="window.location.href='lesson-03-esp32-client.html'">
+                <div class="lesson-card accent" onclick="window.location.href='lesson-03-nano33iot-client.html'">
                     <div class="lesson-number">3</div>
-                    <h2>ESP32 Client</h2>
-                    <p>ส่งข้อมูลจาก ESP32 ไปยัง FastAPI Server</p>
+                    <h2>Nano 33 IoT Client</h2>
+                    <p>ส่งข้อมูลจาก Arduino Nano 33 IoT ไปยัง FastAPI Server</p>
                     <ul class="lesson-topics">
                         <li>WiFi Connection</li>
                         <li>HTTP POST Requests</li>
@@ -395,7 +397,7 @@
                         <li>Virtual Sensor Data</li>
                         <li>Serial Monitor Debug</li>
                     </ul>
-                    <a href="lesson-03-esp32-client.html" class="btn btn-accent">เริ่มเรียน →</a>
+                    <a href="lesson-03-nano33iot-client.html" class="btn btn-accent">เริ่มเรียน →</a>
                 </div>
             </div>
         </section>
@@ -438,8 +440,8 @@
                 </div>
                 <div class="info-item">
                     <div class="info-icon">📱</div>
-                    <h3>ESP32</h3>
-                    <p>Development Board พร้อม USB Cable</p>
+                    <h3>Arduino Nano 33 IoT</h3>
+                    <p>Board พร้อม USB Cable</p>
                 </div>
                 <div class="info-item">
                     <div class="info-icon">📡</div>
@@ -461,7 +463,7 @@
                 <pre style="display: inline-block; text-align: left; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; line-height: 1.6;">
 ┌─────────────────────┐                    ┌──────────────────────┐
 │                     │                    │                      │
-│   ESP32 (Client)    │                    │  Raspberry Pi 4/5    │
+│ Nano 33 IoT (Client)│                    │  Raspberry Pi 4/5    │
 │                     │                    │     (Server)         │
 │   Virtual Sensor    │   HTTP POST        │                      │
 │   - Temperature     │═══════════════════>│   FastAPI Server     │
@@ -478,12 +480,12 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2025 IoT Workshop - HTTP, FastAPI และ ESP32</p>
+            <p>&copy; 2025 IoT Workshop - HTTP, FastAPI และ Arduino Nano 33 IoT</p>
             
             <div class="footer-links" style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
                 <a href="lesson-01-introduction.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">บทที่ 1</a>
                 <a href="lesson-02-fastapi-server.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">บทที่ 2</a>
-                <a href="lesson-03-esp32-client.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">บทที่ 3</a>
+                <a href="lesson-03-nano33iot-client.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">บทที่ 3</a>
             </div>
 <p>Made with ❤️ for IoT Education</p>
         </div>

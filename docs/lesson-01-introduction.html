@@ -480,13 +480,14 @@
             <div class="topbar-links" aria-label="Course navigation">
                 <a href="lesson-01-introduction.html" class="active">บทที่ 1</a>
                 <a href="lesson-02-fastapi-server.html">บทที่ 2</a>
-                <a href="lesson-03-esp32-client.html">บทที่ 3</a>
+                <a href="lesson-03-nano33iot-client.html">บทที่ 3</a>
+                <a href="lesson-04-motion-detection.html">บทที่ 4</a>
             </div>
         </div>
     </div>
 <header id="top">
         <div class="container">
-            <div class="lesson-badge">บทที่ 1 จาก 3</div>
+            <div class="lesson-badge">บทที่ 1 จาก 4</div>
             <h1><span class="icon">📚</span> Introduction</h1>
             <p class="subtitle">HTTP, REST API และ JSON - พื้นฐานสำคัญของ IoT</p>
         </div>
@@ -537,7 +538,7 @@
 ┌─────────────┐                    ┌─────────────┐
 │             │  ─── Request ───>  │             │
 │   CLIENT    │                    │   SERVER    │
-│  (ESP32)    │  <─── Response ──  │ (Raspberry  │
+│  (Nano 33 IoT)    │  <─── Response ──  │ (Raspberry  │
 │             │                    │     Pi)     │
 └─────────────┘                    └─────────────┘
                 </pre>
@@ -557,7 +558,7 @@
                         <tr>
                             <td><strong>Client</strong></td>
                             <td>ส่งคำขอ (Request)</td>
-                            <td>ESP32 ส่งข้อมูล sensor</td>
+                            <td>Nano 33 IoT ส่งข้อมูล sensor</td>
                         </tr>
                         <tr>
                             <td><strong>Server</strong></td>
@@ -603,7 +604,7 @@
 Host: 192.168.1.50:8000
 Content-Type: application/json
 
-{"device_id":"esp32-01","temp":28.5,"hum":65.3}</code></pre>
+{"device_id":"nano33iot-01","temp":28.5,"hum":65.3}</code></pre>
             </div>
 
             <div class="info-box">
@@ -787,7 +788,7 @@ DELETE /api/data/123       → ลบข้อมูล ID 123</code></pre>
                     <span class="code-lang">JSON</span>
                 </div>
                 <pre><code>{
-  "device_id": "esp32-01",
+  "device_id": "nano33iot-01",
   "temp": 28.5,
   "hum": 65.3,
   "source": "virtual",
@@ -808,7 +809,7 @@ DELETE /api/data/123       → ลบข้อมูล ID 123</code></pre>
                     <tbody>
                         <tr>
                             <td><strong>String</strong></td>
-                            <td><code>"esp32-01"</code></td>
+                            <td><code>"nano33iot-01"</code></td>
                             <td>ใส่ ""</td>
                         </tr>
                         <tr>
@@ -845,7 +846,7 @@ DELETE /api/data/123       → ลบข้อมูล ID 123</code></pre>
                 <h4>✅ ถูกต้อง</h4>
                 <div class="code-block">
                     <pre><code>{
-  "device_id": "esp32-01",
+  "device_id": "nano33iot-01",
   "temp": 28.5,
   "hum": 65.3
 }</code></pre>
@@ -856,14 +857,14 @@ DELETE /api/data/123       → ลบข้อมูล ID 123</code></pre>
                 <h4>❌ ผิด</h4>
                 <div class="code-block">
                     <pre><code>{
-  device_id: "esp32-01",      // ❌ key ต้องมี ""
+  device_id: "nano33iot-01",      // ❌ key ต้องมี ""
   "temp": 28.5,
   "hum": 65.3,                // ❌ จุลภาคตัวสุดท้าย
 }</code></pre>
                 </div>
             </div>
 
-            <h3>JSON ใน Arduino (ESP32)</h3>
+            <h3>JSON ใน Arduino (Nano 33 IoT)</h3>
             <h4>สร้าง JSON String</h4>
             <div class="code-block">
                 <div class="code-header">
@@ -875,7 +876,7 @@ payload += "\"temp\":" + String(28.5, 2) + ",";
 payload += "\"hum\":" + String(65.3, 2);
 payload += "}";
 
-// ผลลัพธ์: {"device_id":"esp32-01","temp":28.50,"hum":65.30}</code></pre>
+// ผลลัพธ์: {"device_id":"nano33iot-01","temp":28.50,"hum":65.30}</code></pre>
             </div>
 
             <h4>Parse JSON (ใช้ ArduinoJson Library)</h4>
@@ -1029,7 +1030,7 @@ def receive(data: SensorData):
                     <li><strong>เพิ่ม Timestamp</strong>
                         <div class="code-block" style="margin-top: 0.5rem;">
                             <pre><code>{
-  "device_id": "esp32-01",
+  "device_id": "nano33iot-01",
   "temp": 28.5,
   "ts": "2025-02-16T10:30:00Z"  // ✅ รู้ว่าส่งเมื่อไหร่
 }</code></pre>
@@ -1080,7 +1081,7 @@ def receive(data: SensorData):
                 </details>
 
                 <div class="quiz-question">
-                    <strong>4. ESP32 เป็น Client หรือ Server?</strong>
+                    <strong>4. Nano 33 IoT เป็น Client หรือ Server?</strong>
                 </div>
                 <details>
                     <summary>ดูเฉลย</summary>
@@ -1113,7 +1114,7 @@ def receive(data: SensorData):
                         <tr>
                             <td><strong>Client-Server</strong></td>
                             <td>แบ่งบทบาทชัดเจน</td>
-                            <td>ESP32 = Client, RPi = Server</td>
+                            <td>Nano 33 IoT = Client, RPi = Server</td>
                         </tr>
                         <tr>
                             <td><strong>HTTP</strong></td>
@@ -1128,7 +1129,7 @@ def receive(data: SensorData):
                         <tr>
                             <td><strong>JSON</strong></td>
                             <td>รูปแบบข้อมูล</td>
-                            <td>{"device_id":"esp32-01",...}</td>
+                            <td>{"device_id":"nano33iot-01",...}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1157,7 +1158,7 @@ def receive(data: SensorData):
                 
                 <a href="index.html">🏠 Home (Gateway)</a>
 <a href="lesson-02-fastapi-server.html">บทที่ 2: FastAPI Server →</a>
-                <a href="lesson-03-esp32-client.html">บทที่ 3: ESP32 Client →</a>
+                <a href="lesson-03-nano33iot-client.html">บทที่ 3: ESP32 Client →</a>
             </div>
             <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>
         </div>

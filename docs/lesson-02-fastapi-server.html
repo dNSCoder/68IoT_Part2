@@ -466,13 +466,14 @@
             <div class="topbar-links" aria-label="Course navigation">
                 <a href="lesson-01-introduction.html">บทที่ 1</a>
                 <a href="lesson-02-fastapi-server.html" class="active">บทที่ 2</a>
-                <a href="lesson-03-esp32-client.html">บทที่ 3</a>
+                <a href="lesson-03-nano33iot-client.html">บทที่ 3</a>
+                <a href="lesson-04-motion-detection.html">บทที่ 4</a>
             </div>
         </div>
     </div>
 <header id="top">
         <div class="container">
-            <div class="lesson-badge">บทที่ 2 จาก 3</div>
+            <div class="lesson-badge">บทที่ 2 จาก 4</div>
             <h1><span class="icon">🖥️</span> FastAPI Server</h1>
             <p class="subtitle">สร้าง REST API Server บน Raspberry Pi ด้วย FastAPI</p>
         </div>
@@ -505,7 +506,7 @@
                     <li><strong>สร้าง REST API Server</strong> ที่รับข้อมูลจาก IoT Device</li>
                     <li><strong>ใช้ Pydantic</strong> สำหรับ Data Validation</li>
                     <li><strong>ทดสอบ API</strong> ด้วย Swagger UI (/docs)</li>
-                    <li><strong>เตรียมพร้อม</strong> สำหรับรับข้อมูลจาก ESP32</li>
+                    <li><strong>เตรียมพร้อม</strong> สำหรับรับข้อมูลจาก Arduino Nano 33 IoT</li>
                 </ol>
             </div>
 
@@ -778,7 +779,7 @@ LATEST: Optional[Dict[str, Any]] = None
 
 # กำหนดโครงสร้างข้อมูลที่รับเข้ามาด้วย Pydantic
 class SensorPayload(BaseModel):
-    device_id: str                                       # รหัสอุปกรณ์ (เช่น "esp32-01")
+    device_id: str                                       # รหัสอุปกรณ์ (เช่น "nano33iot-01")
     temp: float                                          # อุณหภูมิ
     hum: float                                           # ความชื้น
     source: Optional[str] = "unknown"                    # แหล่งที่มา (virtual/bme280/...)
@@ -1227,7 +1228,7 @@ uvicorn app:app --host 0.0.0.0 --port 8001</code></pre>
                 
                 <a href="index.html">🏠 Home (Gateway)</a>
 <a href="lesson-01-introduction.html">← บทที่ 1: Introduction</a>
-                <a href="lesson-03-esp32-client.html">บทที่ 3: ESP32 Client →</a>
+                <a href="lesson-03-nano33iot-client.html">บทที่ 3: Nano 33 IoT Client →</a>
             </div>
             <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>
         </div>

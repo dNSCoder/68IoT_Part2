@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บทที่ 4: Motion Detection + Render (RPi) | IoT Workshop</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #2563eb;
+            --accent: #f59e0b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+
+        header .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .lesson-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--bg-card);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* Main Content */
+        main {
+            padding: 3rem 0;
+        }
+
+        section {
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: var(--secondary);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--accent);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(37, 99, 235, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+        }
+
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--error);
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-code);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-lang {
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .inline-code {
+            background: var(--bg-code);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent);
+        }
+
+        /* Step */
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        /* List */
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        /* Checklist */
+        .checklist {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .checklist li {
+            list-style: none;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(16, 185, 129, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .checklist li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .step {
+                flex-direction: column;
+            }
+        }
+
+        /* Icon */
+        .icon {
+            font-style: normal;
+        }
+            /* Topbar (Course navigation) */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            gap: 1rem;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .topbar-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .topbar-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            transition: 0.2s ease;
+        }
+        .topbar-links a:hover {
+            color: var(--text-primary);
+            background: rgba(37, 99, 235, 0.14);
+            border-color: rgba(37, 99, 235, 0.25);
+        }
+        .topbar-links a.active {
+            color: var(--text-primary);
+            background: rgba(37, 99, 235, 0.22);
+            border-color: rgba(37, 99, 235, 0.35);
+        }
+        @media (max-width: 900px) {
+            .topbar-links { display: none; }
+        }
+    
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html">🏠 IoT Workshop</a>
+            <div class="topbar-links" aria-label="Course navigation">
+                <a href="lesson-01-introduction.html">บทที่ 1</a>
+                <a href="lesson-02-fastapi-server.html">บทที่ 2</a>
+                <a href="lesson-03-nano33iot-client.html">บทที่ 3</a>
+                <a href="lesson-04-motion-detection.html" class="active">บทที่ 4</a>
+            </div>
+        </div>
+    </div>
+
+
+<header id="top">
+    <div class="container">
+        <div class="lesson-badge">บทที่ 4 จาก 4</div>
+        <h1><span class="icon">🎥</span> Motion Detection + Web Render</h1>
+        <p class="subtitle">สร้างหน้าเว็บบน Raspberry Pi เพื่อแสดง Motion Events (FastAPI + Jinja2 + SQLite)</p>
+    </div>
+</header>
+
+<nav>
+    <div class="container">
+        <ul>
+            <li><a href="index.html">🏠 Home</a></li>
+            <li><a href="#overview">ภาพรวม</a></li>
+            <li><a href="#architecture">สถาปัตยกรรม</a></li>
+            <li><a href="#setup">ตั้งค่าโปรเจกต์บน RPi</a></li>
+            <li><a href="#run">รัน Server</a></li>
+            <li><a href="#test">ทดสอบด้วย Browser/curl</a></li>
+            <li><a href="#render">อธิบายหน้าเว็บ (Render)</a></li>
+            <li><a href="#db">อธิบาย SQLite</a></li>
+            <li><a href="#tips">Tips ไม่ให้กระทบบทก่อนหน้า</a></li>
+        </ul>
+    </div>
+</nav>
+
+<main class="container">
+    <section id="overview">
+        <h2><span class="icon">🎯</span> เป้าหมายของบทนี้</h2>
+        <div class="card">
+            <p>ในบทที่ 1–3 เราทำระบบ HTTP ส่งข้อมูล sensor (virtual) เข้า FastAPI Server สำเร็จแล้ว</p>
+            <p><strong>บทที่ 4</strong> จะเพิ่มความ “เป็นแอปจริง” โดยทำให้ Raspberry Pi:</p>
+            <ol>
+                <li>มีหน้าเว็บ <code>/</code> ที่ <strong>Render</strong> ตาราง “Motion Events ล่าสุด”</li>
+                <li>มี API <code>POST /motion</code> สำหรับรับ event จาก Nano 33 IoT (PIR)</li>
+                <li>บันทึกข้อมูลลง <strong>SQLite (app.db)</strong> อัตโนมัติ</li>
+            </ol>
+        </div>
+
+        <div class="info-box">
+            <strong>💡 ทำไมบทนี้ไม่กระทบบทก่อนหน้า?</strong>
+            <p>เราแยกโปรเจกต์เป็นโฟลเดอร์ใหม่ และแนะนำให้รันคนละ port (เช่น 8001) เพื่อไม่ชนกับ FastAPI ของบทที่ 2 (8000)</p>
+        </div>
+    </section>
+
+    <section id="architecture">
+        <h2><span class="icon">🏗️</span> สถาปัตยกรรม</h2>
+        <div class="card">
+            <pre style="font-family:'JetBrains Mono',monospace; line-height:1.6; white-space:pre; overflow:auto;">
+┌──────────────────────────┐         HTTP POST /motion         ┌─────────────────────────────┐
+│ Nano 33 IoT + PIR Sensor  │  ───────────────────────────────> │ Raspberry Pi (FastAPI)       │
+│ - ตรวจจับการเคลื่อนไหว    │                                   │ - /motion (รับ event)        │
+│ - ส่ง event เป็น JSON      │                                   │ - / (Render หน้าเว็บ)        │
+└──────────────────────────┘                                   │ - SQLite (app.db)            │
+                                                                └───────────────┬─────────────┘
+                                                                                │
+                                                                                │ เปิดหน้าเว็บ / ดูตาราง
+                                                                                v
+                                                                      ┌───────────────────────┐
+                                                                      │ Browser (PC/Mobile)   │
+                                                                      └───────────────────────┘
+            </pre>
+        </div>
+    </section>
+
+    <section id="setup">
+        <h2><span class="icon">⚙️</span> ตั้งค่าโปรเจกต์บน Raspberry Pi</h2>
+
+        <div class="warning-box">
+            <strong>โฟลเดอร์โปรเจกต์ใหม่</strong>
+            <p>แนะนำให้ทำในโฟลเดอร์ใหม่ เช่น <code>~/motion-server</code> เพื่อไม่กระทบไฟล์จากบทที่ 2</p>
+        </div>
+
+        <h3>1) สร้างโฟลเดอร์ + วางไฟล์</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">Bash</span></div>
+            <pre><code>mkdir -p ~/motion-server
+cd ~/motion-server
+
+# โครงสร้างที่ต้องมี
+# main.py
+# requirements.txt
+# templates/index.html
+# static/styles.css</code></pre>
+        </div>
+
+        <h3>2) requirements.txt</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">txt</span></div>
+            <pre><code>fastapi
+uvicorn[standard]
+jinja2</code></pre>
+        </div>
+
+        <h3>3) สร้าง Virtual Environment + ติดตั้ง dependencies</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">Bash</span></div>
+            <pre><code>python3 -m venv .venv
+source .venv/bin/activate
+
+pip install -r requirements.txt</code></pre>
+        </div>
+    </section>
+
+    <section id="run">
+        <h2><span class="icon">🚀</span> รัน Server</h2>
+        <div class="card">
+            <p>เพื่อไม่ชนกับบทที่ 2 (ที่มักรันบน 8000) แนะนำให้รันบทที่ 4 ที่ <strong>port 8001</strong></p>
+        </div>
+
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">Bash</span></div>
+            <pre><code>uvicorn main:app --host 0.0.0.0 --port 8001</code></pre>
+        </div>
+
+        <div class="info-box">
+            <strong>เปิดใช้งาน</strong>
+            <ul>
+                <li>Web page: <code>http://&lt;RPi-IP&gt;:8001/</code></li>
+                <li>API docs: <code>http://&lt;RPi-IP&gt;:8001/docs</code></li>
+                <li>Latest JSON: <code>http://&lt;RPi-IP&gt;:8001/api/motion/latest?limit=20</code></li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="test">
+        <h2><span class="icon">🧪</span> ทดสอบด้วย Browser / curl</h2>
+
+        <h3>A) เปิดหน้าเว็บเพื่อให้มี “Visit Log”</h3>
+        <div class="card">
+            <p>เปิด <code>http://&lt;RPi-IP&gt;:8001/</code> แล้วรีเฟรช 2–3 ครั้ง จะเห็นจำนวนผู้เข้าชมเพิ่ม</p>
+        </div>
+
+        <h3>B) ส่ง Motion Event แบบจำลองด้วย curl (จาก PC หรือ RPi ก็ได้)</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">Bash</span></div>
+            <pre><code>curl -X POST "http://&lt;RPi-IP&gt;:8001/motion" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "device": "nano33iot-01",
+    "event": "motion_detected",
+    "motion": true,
+    "rssi": -55,
+    "millis": 123456
+  }'</code></pre>
+        </div>
+
+        <div class="success-box">
+            <strong>✅ ถ้าสำเร็จ</strong>
+            <p>หน้าเว็บ <code>/</code> จะมีตาราง “Motion Events ล่าสุด” เพิ่มรายการใหม่ทันทีเมื่อรีเฟรช</p>
+        </div>
+
+        <h3>C) เช็ค JSON ล่าสุด</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">URL</span></div>
+            <pre><code>http://&lt;RPi-IP&gt;:8001/api/motion/latest?limit=20</code></pre>
+        </div>
+    </section>
+
+    <section id="render">
+        <h2><span class="icon">🧩</span> อธิบายหน้าเว็บ (Render)</h2>
+        <div class="card">
+            <p>บทนี้ใช้ <strong>FastAPI + Jinja2Templates</strong> เพื่อ Render HTML จากไฟล์ <code>templates/index.html</code> และเสิร์ฟ CSS จาก <code>/static/styles.css</code></p>
+        </div>
+
+        <h3>โค้ดหลัก (main.py)</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">Python</span></div>
+            <pre><code>from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+
+import sqlite3
+from datetime import datetime, timezone
+
+DB_PATH = "app.db"
+
+app = FastAPI(title="RPi Motion Server")
+
+# serve /static/*
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as con:
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS visits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts TEXT NOT NULL,
+            ip TEXT,
+            user_agent TEXT
+        );
+        """)
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS motion_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ts TEXT NOT NULL,
+            device TEXT,
+            event TEXT,
+            motion INTEGER,
+            rssi INTEGER,
+            millis INTEGER,
+            source_ip TEXT
+        );
+        """)
+        con.commit()
+
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
+
+
+def log_visit(ip: str, user_agent: str):
+    ts = datetime.now(timezone.utc).isoformat()
+    with sqlite3.connect(DB_PATH) as con:
+        con.execute(
+            "INSERT INTO visits(ts, ip, user_agent) VALUES (?, ?, ?)",
+            (ts, ip, user_agent),
+        )
+        con.commit()
+
+
+def log_motion_event(device: str, event: str, motion: bool, rssi: int | None, millis: int | None, source_ip: str):
+    ts = datetime.now(timezone.utc).isoformat()
+    with sqlite3.connect(DB_PATH) as con:
+        con.execute(
+            "INSERT INTO motion_events(ts, device, event, motion, rssi, millis, source_ip) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (ts, device, event, 1 if motion else 0, rssi, millis, source_ip),
+        )
+        con.commit()
+
+
+def get_stats(visits_limit: int = 20, motion_limit: int = 20):
+    with sqlite3.connect(DB_PATH) as con:
+        cur = con.cursor()
+        cur.execute("SELECT COUNT(*) FROM visits")
+        total_visits = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM motion_events")
+        total_motion = cur.fetchone()[0]
+
+        cur.execute(
+            "SELECT ts, ip, user_agent FROM visits ORDER BY id DESC LIMIT ?",
+            (visits_limit,),
+        )
+        visit_rows = cur.fetchall()
+
+        cur.execute(
+            "SELECT ts, device, event, motion, rssi, millis, source_ip FROM motion_events ORDER BY id DESC LIMIT ?",
+            (motion_limit,),
+        )
+        motion_rows = cur.fetchall()
+
+    latest_visits = [{"ts": ts, "ip": ip or "-", "ua": (ua or "-")} for (ts, ip, ua) in visit_rows]
+    latest_motion = [
+        {
+            "ts": ts,
+            "device": device or "-",
+            "event": event or "-",
+            "motion": bool(motion),
+            "rssi": rssi,
+            "millis": millis,
+            "source_ip": source_ip or "-",
+        }
+        for (ts, device, event, motion, rssi, millis, source_ip) in motion_rows
+    ]
+    return total_visits, total_motion, latest_visits, latest_motion
+
+
+class MotionEvent(BaseModel):
+    device: str = "nano33iot"
+    event: str
+    motion: bool
+    rssi: int | None = None
+    millis: int | None = None
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    # NOTE: if you're behind a reverse proxy, you may want to read X-Forwarded-For instead.
+    ip = request.client.host if request.client else "unknown"
+    ua = request.headers.get("user-agent", "-")
+
+    log_visit(ip, ua)
+    total_visits, total_motion, latest_visits, latest_motion = get_stats()
+
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "total_visits": total_visits,
+            "total_motion": total_motion,
+            "latest_visits": latest_visits,
+            "latest_motion": latest_motion,
+        },
+    )
+
+
+@app.post("/motion")
+def motion_endpoint(request: Request, e: MotionEvent):
+    source_ip = request.client.host if request.client else "unknown"
+    log_motion_event(e.device, e.event, e.motion, e.rssi, e.millis, source_ip)
+    return {"ok": True, "received": e.event}
+
+
+@app.get("/api/motion/latest")
+def motion_latest(limit: int = 20):
+    # simple JSON endpoint (useful for dashboards)
+    _, _, _, latest_motion = get_stats(motion_limit=limit)
+    return {"items": latest_motion}
+</code></pre>
+        </div>
+
+        <h3>หน้าเว็บ (templates/index.html)</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">HTML</span></div>
+            <pre><code><!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RPi Motion Server</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>RPi Motion Server 👋</h1>
+      <p class="subtitle">Render (Jinja2) + API (/motion) + บันทึกลง SQLite</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="grid">
+      <div class="card">
+        <div class="card-title">จำนวนผู้เข้าชมทั้งหมด</div>
+        <div class="big-number">{{ total_visits }}</div>
+        <div class="hint">นับรวมทุกครั้งที่มีคนเปิดหน้า /</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">จำนวน Motion Events ทั้งหมด</div>
+        <div class="big-number">{{ total_motion }}</div>
+        <div class="hint">มาจาก Nano 33 IoT ส่ง POST ไปที่ /motion</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2>Motion Events ล่าสุด ({{ latest_motion|length }} รายการ)</h2>
+        <span class="pill">POST /motion</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>เวลา (UTC)</th>
+              <th>Device</th>
+              <th>Event</th>
+              <th>Motion</th>
+              <th>RSSI</th>
+              <th>Millis</th>
+              <th>Source IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in latest_motion %}
+              <tr>
+                <td class="mono">{{ m.ts }}</td>
+                <td class="mono">{{ m.device }}</td>
+                <td class="mono">{{ m.event }}</td>
+                <td class="mono">{{ "true" if m.motion else "false" }}</td>
+                <td class="mono">{{ m.rssi if m.rssi is not none else "-" }}</td>
+                <td class="mono">{{ m.millis if m.millis is not none else "-" }}</td>
+                <td class="mono">{{ m.source_ip }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="footnote">
+        ทดสอบได้ด้วยการเปิดหน้าเว็บนี้ แล้วให้ Nano ส่ง event เข้ามา หรือยิงเองด้วย curl
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <h2>ผู้เข้าชมล่าสุด ({{ latest_visits|length }} รายการ)</h2>
+        <span class="pill">GET /</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>เวลา (UTC)</th>
+              <th>IP</th>
+              <th>User-Agent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in latest_visits %}
+              <tr>
+                <td class="mono">{{ v.ts }}</td>
+                <td class="mono">{{ v.ip }}</td>
+                <td class="ua">{{ v.ua }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <span class="muted">RPi • FastAPI Render + Motion API</span>
+    </div>
+  </footer>
+</body>
+</html>
+</code></pre>
+        </div>
+
+        <h3>สไตล์ (static/styles.css)</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">CSS</span></div>
+            <pre><code>:root{
+  --bg:#0b1020;
+  --text:#e9eeff;
+  --muted:#a9b2d6;
+  --line:rgba(255,255,255,.12);
+  --ok:#42d392;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans Thai", sans-serif;
+  background: radial-gradient(1200px 700px at 20% 10%, #1a2b6a 0%, rgba(26,43,106,0) 60%),
+              radial-gradient(900px 500px at 80% 0%, #2a1b5a 0%, rgba(42,27,90,0) 55%),
+              var(--bg);
+  color:var(--text);
+}
+
+.container{ width:min(1100px, 92%); margin:0 auto; }
+
+.header{
+  padding:28px 0 18px;
+  border-bottom:1px solid var(--line);
+  background: rgba(0,0,0,.15);
+  backdrop-filter: blur(6px);
+}
+
+h1{margin:0 0 6px; font-size:28px}
+.subtitle{margin:0; color:var(--muted)}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap:14px;
+  margin:18px 0;
+}
+@media (max-width: 760px){
+  .grid{grid-template-columns: 1fr;}
+}
+
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.25);
+  margin-bottom:14px;
+}
+
+.card-title{color:var(--muted); font-size:13px; letter-spacing:.2px}
+.big-number{font-size:44px; font-weight:800; margin:8px 0 4px}
+.hint{color:var(--muted); font-size:13px}
+
+.row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+h2{margin:0; font-size:18px}
+
+.pill{
+  font-size:12px;
+  color:var(--muted);
+  border:1px solid var(--line);
+  padding:4px 10px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+
+.table-wrap{
+  overflow:auto;
+  border:1px solid var(--line);
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:860px;
+  background: rgba(0,0,0,.18);
+}
+th, td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+  font-size:13px;
+}
+th{
+  text-align:left;
+  color:var(--muted);
+  font-weight:600;
+  background: rgba(255,255,255,.04);
+}
+tr:hover td{background: rgba(255,255,255,.03)}
+.mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
+.ua{max-width: 520px; word-break: break-word; color: #d7ddff;}
+
+.footer{
+  margin-top:20px;
+  padding:16px 0 26px;
+  color:var(--muted);
+  border-top:1px solid var(--line);
+}
+.muted{color:var(--muted)}
+.footnote{margin:10px 0 0; color:var(--muted); font-size:12px}
+</code></pre>
+        </div>
+    </section>
+
+    <section id="db">
+        <h2><span class="icon">🗄️</span> อธิบาย SQLite (app.db)</h2>
+        <div class="card">
+            <p>โปรเจกต์นี้สร้างไฟล์ <code>app.db</code> อัตโนมัติในโฟลเดอร์โปรเจกต์เมื่อ server start และมี 2 ตารางหลัก:</p>
+            <ul>
+                <li><code>visits</code> — เก็บทุกครั้งที่มีคนเปิดหน้า <code>/</code></li>
+                <li><code>motion_events</code> — เก็บทุก event ที่ส่งเข้ามาทาง <code>POST /motion</code></li>
+            </ul>
+        </div>
+
+        <h3>ดูข้อมูลใน SQLite (ทางเลือก)</h3>
+        <div class="code-block">
+            <div class="code-header"><span class="code-lang">Bash</span></div>
+            <pre><code>sudo apt update
+sudo apt install -y sqlite3
+
+sqlite3 app.db
+.tables
+SELECT * FROM motion_events ORDER BY id DESC LIMIT 5;
+.quit</code></pre>
+        </div>
+    </section>
+
+    <section id="tips">
+        <h2><span class="icon">✅</span> Tips: ไม่ให้กระทบบทก่อนหน้า</h2>
+        <div class="checklist">
+            <ul>
+                <li>ทำเป็นคนละโฟลเดอร์ เช่น <code>~/iot-server</code> (บท 2) และ <code>~/motion-server</code> (บท 4)</li>
+                <li>รันคนละ port (แนะนำ <code>8000</code> สำหรับบท 2 และ <code>8001</code> สำหรับบท 4)</li>
+                <li>ถ้าอยากใช้ port เดียว ต้อง “รวม route” เข้าโปรเจกต์เดียว (ทำเป็นงานต่อยอด)</li>
+            </ul>
+        </div>
+    </section>
+
+    <section>
+        <h2><span class="icon">🎓</span> สรุป</h2>
+        <div class="card">
+            <ol>
+                <li>เราสร้างหน้าเว็บ Render บน RPi ได้ (Jinja2 + CSS)</li>
+                <li>เรารับ event ผ่าน API <code>POST /motion</code> ได้</li>
+                <li>เราบันทึกลง SQLite และแสดงผลเป็นตารางได้</li>
+            </ol>
+        </div>
+
+        <div class="success-box">
+            <h3>ต่อยอด</h3>
+            <ul>
+                <li>ต่อ PIR จริงกับ Nano 33 IoT แล้วส่ง event แบบเดียวกับ curl</li>
+                <li>ทำ auto-refresh ตารางด้วย JS (polling <code>/api/motion/latest</code>)</li>
+                <li>เพิ่ม email/LINE notify เมื่อเจอ motion</li>
+            </ul>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <div class="container">
+        <p>&copy; 2025 IoT Workshop - Motion Detection + Render</p>
+        <div class="footer-links">
+            <a href="index.html">🏠 Home (Gateway)</a>
+            <a href="lesson-03-nano33iot-client.html">← บทที่ 3: Nano 33 IoT Client</a>
+        </div>
+        <p style="margin-top: 1rem; color: var(--text-muted);">Made with ❤️ for IoT Education</p>
+    </div>
+</footer>
+</body>
+</html>
