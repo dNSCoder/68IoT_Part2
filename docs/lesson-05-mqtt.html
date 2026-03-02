@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บทที่ 5: MQTT Protocol | IoT Workshop</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #6d28d9;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-code: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans Thai', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Topbar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+        .topbar-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            gap: 1rem;
+        }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.01em;
+        }
+        .topbar-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .topbar-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            transition: 0.2s ease;
+        }
+        .topbar-links a:hover {
+            color: var(--text-primary);
+            background: rgba(139, 92, 246, 0.14);
+            border-color: rgba(139, 92, 246, 0.25);
+        }
+        .topbar-links a.active {
+            color: var(--text-primary);
+            background: rgba(139, 92, 246, 0.22);
+            border-color: rgba(139, 92, 246, 0.35);
+        }
+        @media (max-width: 900px) { .topbar-links { display: none; } }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.3;
+        }
+        header .container { position: relative; z-index: 1; }
+
+        .lesson-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.9);
+            font-weight: 300;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--bg-card);
+            padding: 1rem 0;
+            position: sticky;
+            top: 53px;
+            z-index: 99;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        nav a:hover {
+            color: var(--primary);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        /* Main Content */
+        main { padding: 3rem 0; }
+
+        section {
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: var(--secondary);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--accent);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(139, 92, 246, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+        .success-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--success);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg-code);
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+        }
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .code-lang {
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            color: var(--text-primary);
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .inline-code {
+            background: var(--bg-code);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent);
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(139, 92, 246, 0.05); }
+
+        /* Diagram */
+        .diagram {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+        }
+        .diagram pre {
+            display: inline-block;
+            text-align: left;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        /* List */
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+            color: var(--text-secondary);
+        }
+        li { margin-bottom: 0.5rem; }
+
+        /* Quiz */
+        .quiz {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 2px solid var(--primary);
+        }
+        .quiz h3 { color: var(--primary); margin-top: 0; }
+        .quiz-question {
+            background: rgba(139, 92, 246, 0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .quiz-question strong { color: var(--accent); }
+
+        details {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            border: 1px solid var(--success);
+        }
+        summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--success);
+            user-select: none;
+        }
+        summary:hover { color: var(--primary); }
+
+        /* Footer */
+        footer {
+            background: var(--bg-card);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer-links a:hover { text-decoration: underline; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.8rem; }
+            nav ul { flex-direction: column; gap: 0.5rem; }
+            .container { padding: 0 1rem; }
+            table { font-size: 0.9rem; }
+            th, td { padding: 0.75rem; }
+        }
+
+        .icon { font-style: normal; }
+
+        /* Compare boxes */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        @media (max-width: 640px) { .compare-grid { grid-template-columns: 1fr; } }
+
+        .compare-box {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+        .compare-box h4 { margin-top: 0; }
+
+        /* QoS badges */
+        .qos-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+        }
+        .qos-0 { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .qos-1 { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .qos-2 { background: rgba(16,185,129,0.2); color: #10b981; }
+    </style>
+</head>
+<body>
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html">🏠 IoT Workshop</a>
+            <div class="topbar-links" aria-label="Course navigation">
+                <a href="lesson-01-introduction.html">บทที่ 1</a>
+                <a href="lesson-02-fastapi-server.html">บทที่ 2</a>
+                <a href="lesson-03-nano33iot-client.html">บทที่ 3</a>
+                <a href="lesson-04-motion-detection.html">บทที่ 4</a>
+                <a href="lesson-05-mqtt.html" class="active">บทที่ 5</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header id="top">
+        <div class="container">
+            <div class="lesson-badge">บทที่ 5 จาก 5</div>
+            <h1><span class="icon">📡</span> MQTT Protocol</h1>
+            <p class="subtitle">โปรโตคอลน้ำหนักเบาสำหรับ IoT — Publish, Subscribe, Broker</p>
+        </div>
+    </header>
+
+    <!-- Section Nav -->
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="index.html">🏠 Home</a></li>
+                <li><a href="#overview">ภาพรวม</a></li>
+                <li><a href="#architecture">สถาปัตยกรรม</a></li>
+                <li><a href="#components">ส่วนประกอบ</a></li>
+                <li><a href="#topics">Topics</a></li>
+                <li><a href="#qos">QoS</a></li>
+                <li><a href="#features">คุณสมบัติ</a></li>
+                <li><a href="#compare">เทียบ HTTP</a></li>
+                <li><a href="#quiz">แบบทดสอบ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <!-- Overview -->
+        <section id="overview">
+            <h2><span class="icon">🎯</span> เป้าหมายของบทนี้</h2>
+            <div class="card">
+                <p>เข้าใจพื้นฐานของ:</p>
+                <ol>
+                    <li><strong>MQTT คืออะไร</strong> — ต่างจาก HTTP อย่างไร</li>
+                    <li><strong>สถาปัตยกรรม Publish-Subscribe</strong></li>
+                    <li><strong>ส่วนประกอบ</strong> — Publisher, Subscriber, Broker</li>
+                    <li><strong>Topics & Wildcards</strong></li>
+                    <li><strong>Quality of Service (QoS)</strong></li>
+                    <li><strong>คุณสมบัติสำคัญ</strong> — Retain, LWT, Security</li>
+                </ol>
+            </div>
+
+            <div class="info-box">
+                <strong>💡 ทำไมต้องรู้จัก MQTT?</strong>
+                <p>HTTP ส่งข้อมูลได้ดี แต่สำหรับอุปกรณ์ IoT ที่ต้องการสื่อสารแบบ Real-time หลายตัวพร้อมกัน พลังงานต่ำ หรือเครือข่ายไม่เสถียร — MQTT คือตัวเลือกที่ดีกว่า</p>
+            </div>
+
+            <h3>MQTT คืออะไร?</h3>
+            <div class="card">
+                <p><strong>MQTT</strong> ย่อมาจาก <strong>M</strong>essage <strong>Q</strong>ueuing <strong>T</strong>elemetry <strong>T</strong>ransport</p>
+                <p>เป็นโปรโตคอลสื่อสารน้ำหนักเบา ออกแบบมาตั้งแต่ปี 1999 สำหรับอุปกรณ์ที่มี:</p>
+                <ul>
+                    <li>แบนด์วิดธ์จำกัด (Low Bandwidth)</li>
+                    <li>พลังงานน้อย (Low Power)</li>
+                    <li>การเชื่อมต่อที่ไม่เสถียร (Unreliable Network)</li>
+                </ul>
+                <p>ปัจจุบันกลายเป็นมาตรฐานหลักของ IoT ใช้ในระบบ Smart Home, โรงงาน, ยานพาหนะ และอีกมากมาย</p>
+            </div>
+        </section>
+
+        <!-- Architecture -->
+        <section id="architecture">
+            <h2><span class="icon">🏗️</span> สถาปัตยกรรม Publish-Subscribe</h2>
+
+            <div class="diagram">
+                <pre>
+┌─────────────┐    publish     ┌──────────────┐    deliver    ┌─────────────┐
+│             │ ─────────────> │              │ ────────────> │             │
+│  Publisher  │                │    BROKER    │               │ Subscriber  │
+│  (ESP32 /   │                │  (RPi หรือ  │               │  (App /     │
+│  Nano 33)   │                │   Cloud)     │               │   PC / อื่น)│
+│             │                │              │               │             │
+└─────────────┘                └──────────────┘               └─────────────┘
+   ส่งข้อมูล                    กลางกระจายข้อมูล                  รับข้อมูล
+                </pre>
+            </div>
+
+            <div class="card">
+                <h3>Publish-Subscribe ต่างจาก Request-Response อย่างไร?</h3>
+                <div class="compare-grid">
+                    <div class="compare-box">
+                        <h4>🌐 HTTP (Request-Response)</h4>
+                        <ul>
+                            <li>Client ต้องรู้ว่า Server อยู่ที่ไหน</li>
+                            <li>ส่งคำขอ → รอรับคำตอบ</li>
+                            <li>1 ผู้ส่ง → 1 ผู้รับ</li>
+                            <li>ต้องรอ Response ทุกครั้ง</li>
+                        </ul>
+                    </div>
+                    <div class="compare-box">
+                        <h4>📡 MQTT (Publish-Subscribe)</h4>
+                        <ul>
+                            <li>Publisher ไม่รู้จัก Subscriber</li>
+                            <li>ส่งข้อมูล → ไม่ต้องรอ</li>
+                            <li>1 ผู้ส่ง → หลายผู้รับพร้อมกัน</li>
+                            <li>Broker จัดการกระจายข้อมูล</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>📌 ข้อดีของ Decoupling</strong>
+                <p>Publisher และ Subscriber ไม่จำเป็นต้องออนไลน์พร้อมกัน Broker จะเก็บข้อความไว้ให้ Subscriber ที่ออฟไลน์อยู่ และส่งให้เมื่อกลับมาออนไลน์</p>
+            </div>
+        </section>
+
+        <!-- Components -->
+        <section id="components">
+            <h2><span class="icon">🔩</span> ส่วนประกอบหลัก</h2>
+
+            <h3>Broker — ตัวกลาง</h3>
+            <div class="card">
+                <p>Broker คือหัวใจของระบบ MQTT ทำหน้าที่:</p>
+                <ul>
+                    <li>รับข้อความจาก Publisher ทุกตัว</li>
+                    <li>กรองและส่งต่อให้ Subscriber ที่ Subscribe Topic นั้น</li>
+                    <li>เก็บข้อความไว้ถ้า Subscriber ออฟไลน์ (ขึ้นอยู่กับ QoS)</li>
+                    <li>จัดการ Authentication และ Authorization</li>
+                </ul>
+                <div class="success-box">
+                    <strong>✅ Broker ยอดนิยม:</strong>
+                    <ul>
+                        <li><strong>Mosquitto</strong> — โอเพนซอร์ส ติดตั้งบน Raspberry Pi ได้</li>
+                        <li><strong>HiveMQ</strong> — Cloud-based มี Free tier</li>
+                        <li><strong>AWS IoT Core</strong> — Managed service บน AWS</li>
+                        <li><strong>EMQX</strong> — High-performance สำหรับ Enterprise</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Publisher — ผู้ส่ง</h3>
+            <div class="card">
+                <p>อุปกรณ์ที่ <strong>ส่ง (publish)</strong> ข้อมูลไปยัง Broker บน Topic ที่กำหนด</p>
+                <ul>
+                    <li>ไม่รู้ว่ามี Subscriber กี่คน</li>
+                    <li>กำหนด Topic, QoS และ Retain flag ได้</li>
+                    <li>ตัวอย่าง: Arduino Nano 33 IoT ส่งค่าอุณหภูมิทุก 5 วินาที</li>
+                </ul>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Python (paho-mqtt)</span></div>
+                    <pre>import paho.mqtt.client as mqtt
+
+client = mqtt.Client()
+client.connect("broker.local", 1883)
+
+# ส่งค่า temperature ไปที่ topic
+client.publish("home/sensor/temperature", "28.5")
+client.disconnect()</pre>
+                </div>
+            </div>
+
+            <h3>Subscriber — ผู้รับ</h3>
+            <div class="card">
+                <p>อุปกรณ์ที่ <strong>สมัครรับ (subscribe)</strong> Topic ที่สนใจ Broker จะส่งข้อมูลให้ทุกครั้งที่มี Publisher ส่งมา</p>
+                <ul>
+                    <li>Subscribe หลาย Topic พร้อมกันได้</li>
+                    <li>ใช้ Wildcards เพื่อรับ Topic ที่ match pattern</li>
+                    <li>ตัวอย่าง: แอปบนโทรศัพท์แสดงค่า sensor แบบ Real-time</li>
+                </ul>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Python (paho-mqtt)</span></div>
+                    <pre>import paho.mqtt.client as mqtt
+
+def on_message(client, userdata, msg):
+    print(f"Topic: {msg.topic}")
+    print(f"Data:  {msg.payload.decode()}")
+
+client = mqtt.Client()
+client.on_message = on_message
+client.connect("broker.local", 1883)
+
+# รับทุก topic ใต้ home/sensor/
+client.subscribe("home/sensor/#")
+client.loop_forever()</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Topics -->
+        <section id="topics">
+            <h2><span class="icon">🗂️</span> Topics และ Wildcards</h2>
+
+            <div class="card">
+                <h3>Topic คืออะไร?</h3>
+                <p>Topic เป็นเส้นทาง (path) ลำดับชั้น คั่นด้วย <span class="inline-code">/</span> ใช้บอกว่าข้อมูลนี้คืออะไรและมาจากไหน</p>
+                <div class="code-block">
+                    <pre>home/kitchen/temperature
+home/bedroom/humidity
+factory/line1/sensor/pressure
+vehicle/truck01/speed</pre>
+                </div>
+            </div>
+
+            <h3>Wildcards</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Wildcard</th>
+                            <th>ความหมาย</th>
+                            <th>ตัวอย่าง</th>
+                            <th>รับ Topic ใดได้บ้าง</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="inline-code">+</span></td>
+                            <td>แทนได้ 1 ระดับ</td>
+                            <td><span class="inline-code">home/+/temperature</span></td>
+                            <td>home/kitchen/temperature, home/bedroom/temperature</td>
+                        </tr>
+                        <tr>
+                            <td><span class="inline-code">#</span></td>
+                            <td>แทนได้หลายระดับ (ใส่ท้ายเท่านั้น)</td>
+                            <td><span class="inline-code">home/#</span></td>
+                            <td>home/kitchen/temperature, home/bedroom/humidity, home/any/deep/path</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">ตัวอย่าง Wildcard</span></div>
+                    <pre># Subscribe: home/+/temperature
+# รับได้:    home/kitchen/temperature  ✅
+# รับได้:    home/bedroom/temperature  ✅
+# ไม่รับ:    home/kitchen/sensor/temp  ❌ (เกิน 1 ระดับ)
+# ไม่รับ:    factory/line1/temperature ❌ (ต่างกลุ่ม)
+
+# Subscribe: home/#
+# รับได้:    home/kitchen/temperature  ✅
+# รับได้:    home/bedroom/humidity     ✅
+# รับได้:    home/any/deep/path/here   ✅
+# ไม่รับ:    factory/line1/sensor      ❌</pre>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ ข้อควรระวัง:</strong>
+                <p>Topic ขึ้นต้นด้วย <span class="inline-code">$</span> (เช่น <span class="inline-code">$SYS/</span>) สงวนไว้สำหรับ Broker ไม่ควร publish ไปที่นั่น</p>
+            </div>
+        </section>
+
+        <!-- QoS -->
+        <section id="qos">
+            <h2><span class="icon">📶</span> Quality of Service (QoS)</h2>
+
+            <p>QoS กำหนดระดับการรับประกันว่าข้อความจะถึงผู้รับหรือไม่ มี 3 ระดับ:</p>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>QoS</th>
+                            <th>ชื่อ</th>
+                            <th>การรับประกัน</th>
+                            <th>เหมาะกับ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="qos-badge qos-0">0</span></td>
+                            <td>At most once</td>
+                            <td>ส่งครั้งเดียว ไม่ยืนยัน (อาจหาย)</td>
+                            <td>ค่า sensor ที่ส่งถี่ ไม่ critical</td>
+                        </tr>
+                        <tr>
+                            <td><span class="qos-badge qos-1">1</span></td>
+                            <td>At least once</td>
+                            <td>รับประกันว่าถึง แต่อาจซ้ำ</td>
+                            <td>คำสั่งควบคุมทั่วไป</td>
+                        </tr>
+                        <tr>
+                            <td><span class="qos-badge qos-2">2</span></td>
+                            <td>Exactly once</td>
+                            <td>รับประกันถึงครั้งเดียวเท่านั้น</td>
+                            <td>คำสั่งที่ต้องแม่นยำ เช่น เปิด/ปิดระบบ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram">
+                <pre>
+QoS 0:  Sender ─── msg ──────────────────────────────> Receiver
+        (ไม่รู้ว่าถึงไหม)
+
+QoS 1:  Sender ─── msg ──> Receiver
+               <── ACK ─── Receiver
+        (ถ้าไม่ได้ ACK จะส่งซ้ำ → อาจซ้ำ)
+
+QoS 2:  Sender ─── msg ──> Receiver
+               <── ACK ─── Receiver
+        Sender ─── REL ──> Receiver
+               <── COMP ── Receiver
+        (4-way handshake → ถึงแน่นอนครั้งเดียว)
+                </pre>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="features">
+            <h2><span class="icon">✨</span> คุณสมบัติสำคัญ</h2>
+
+            <h3>Retained Messages</h3>
+            <div class="card">
+                <p>Broker เก็บข้อความล่าสุดของแต่ละ Topic ไว้ เมื่อมี Subscriber ใหม่ Subscribe จะได้รับข้อความล่าสุดทันที โดยไม่ต้องรอ Publisher ส่งใหม่</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Python</span></div>
+                    <pre># ส่งพร้อม retain=True
+client.publish("home/sensor/temperature", "28.5", retain=True)
+
+# Subscriber ใหม่ที่ subscribe topic นี้จะได้ "28.5" ทันที</pre>
+                </div>
+            </div>
+
+            <h3>Last Will and Testament (LWT)</h3>
+            <div class="card">
+                <p>เมื่ออุปกรณ์หลุดออฟไลน์กะทันหัน (ไม่ได้ disconnect ปกติ) Broker จะส่งข้อความ "พินัยกรรม" ที่กำหนดไว้แทน ช่วยให้ระบบรู้ว่าอุปกรณ์ตายแล้ว</p>
+                <div class="code-block">
+                    <div class="code-header"><span class="code-lang">Python</span></div>
+                    <pre># ตั้งค่า LWT ก่อน connect
+client.will_set(
+    topic="home/nano33/status",
+    payload="offline",
+    qos=1,
+    retain=True
+)
+client.connect("broker.local", 1883)
+
+# เมื่อ connect สำเร็จ ส่งสถานะ online
+client.publish("home/nano33/status", "online", retain=True)</pre>
+                </div>
+            </div>
+
+            <h3>Security</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Port</th>
+                            <th>การเข้ารหัส</th>
+                            <th>ใช้เมื่อ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="inline-code">1883</span></td>
+                            <td>ไม่เข้ารหัส</td>
+                            <td>Network ภายใน (LAN) ทดสอบ</td>
+                        </tr>
+                        <tr>
+                            <td><span class="inline-code">8883</span></td>
+                            <td>TLS/SSL</td>
+                            <td>Production, อินเทอร์เน็ต</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top:1rem;">นอกจากนี้ยังรองรับ Username/Password Authentication และ Client Certificate</p>
+            </div>
+        </section>
+
+        <!-- Compare -->
+        <section id="compare">
+            <h2><span class="icon">⚖️</span> เปรียบเทียบ MQTT vs HTTP</h2>
+
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>คุณสมบัติ</th>
+                            <th>HTTP</th>
+                            <th>MQTT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>รูปแบบการสื่อสาร</td>
+                            <td>Request-Response</td>
+                            <td>Publish-Subscribe</td>
+                        </tr>
+                        <tr>
+                            <td>น้ำหนัก (Overhead)</td>
+                            <td>หนักกว่า (Headers ใหญ่)</td>
+                            <td>เบามาก (2 bytes header)</td>
+                        </tr>
+                        <tr>
+                            <td>การเชื่อมต่อ</td>
+                            <td>Stateless (ทุก request ใหม่)</td>
+                            <td>Persistent Connection</td>
+                        </tr>
+                        <tr>
+                            <td>Real-time</td>
+                            <td>ต้อง polling หรือ WebSocket</td>
+                            <td>รองรับโดยตรง</td>
+                        </tr>
+                        <tr>
+                            <td>หลาย Receiver</td>
+                            <td>ส่งทีละคน (1-to-1)</td>
+                            <td>ส่งพร้อมกันทุกคน (1-to-many)</td>
+                        </tr>
+                        <tr>
+                            <td>เหมาะกับ</td>
+                            <td>Web API, REST, Webhook</td>
+                            <td>IoT Sensor, Real-time Event</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="diagram">
+                <pre>
+HTTP:  Nano 33 ──POST──> FastAPI Server
+               <── 200 ── FastAPI Server    (ต้องรอ Response)
+
+MQTT:  Nano 33 ──publish──> Broker ──> Subscriber A
+                                    ──> Subscriber B
+                                    ──> Subscriber C
+       (ส่งครั้งเดียว ถึงทุกคนที่ Subscribe)
+                </pre>
+            </div>
+
+            <div class="success-box">
+                <strong>✅ เลือกใช้อะไร?</strong>
+                <ul>
+                    <li>ใช้ <strong>HTTP</strong> เมื่อ: ต้องการ REST API, web integration, ต้องการ response ทันที</li>
+                    <li>ใช้ <strong>MQTT</strong> เมื่อ: Real-time, หลายอุปกรณ์, battery-powered, เครือข่ายไม่เสถียร</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section id="usecases">
+            <h2><span class="icon">🌍</span> Use Cases ใน IoT</h2>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>สถานการณ์</th>
+                            <th>ใช้ MQTT เพราะ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Smart Home</td>
+                            <td>อุปกรณ์หลายตัวสื่อสารกันแบบ Real-time, แอปควบคุมได้ทันที</td>
+                        </tr>
+                        <tr>
+                            <td>โรงงาน (IIoT)</td>
+                            <td>รับค่า sensor หลายจุดพร้อมกัน แจ้งเตือนทันทีเมื่อผิดปกติ</td>
+                        </tr>
+                        <tr>
+                            <td>ยานพาหนะ</td>
+                            <td>เครือข่ายไม่เสถียร MQTT จัดการ reconnect และ QoS ได้ดี</td>
+                        </tr>
+                        <tr>
+                            <td>Smart Agriculture</td>
+                            <td>ประหยัดแบตเตอรี่ แบนด์วิดธ์น้อย ส่งข้อมูล sensor เป็นระยะ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Quiz -->
+        <section id="quiz">
+            <div class="quiz">
+                <h3>✅ เช็คความเข้าใจ</h3>
+
+                <div class="quiz-question">
+                    <strong>1.</strong> MQTT ต่างจาก HTTP อย่างไรในด้านรูปแบบการสื่อสาร?
+                    <details>
+                        <summary>ดูเฉลย</summary>
+                        <p>HTTP ใช้รูปแบบ <strong>Request-Response</strong> (Client ต้องขอก่อนถึงจะได้รับ) ส่วน MQTT ใช้ <strong>Publish-Subscribe</strong> (Publisher ส่งไป Broker กระจายให้ Subscriber ทุกคนที่ Subscribe อยู่)</p>
+                    </details>
+                </div>
+
+                <div class="quiz-question">
+                    <strong>2.</strong> Broker ทำหน้าที่อะไรในระบบ MQTT?
+                    <details>
+                        <summary>ดูเฉลย</summary>
+                        <p>Broker เป็นตัวกลางที่ <strong>รับข้อความจาก Publisher</strong> จากนั้นกรองและ <strong>ส่งต่อให้ Subscriber</strong> ที่ Subscribe Topic นั้นอยู่ นอกจากนี้ยังจัดการ authentication และเก็บข้อความสำหรับ Subscriber ที่ออฟไลน์</p>
+                    </details>
+                </div>
+
+                <div class="quiz-question">
+                    <strong>3.</strong> Topic <span class="inline-code">home/+/temp</span> จะรับข้อความจาก Topic ใดได้บ้าง?
+                    <details>
+                        <summary>ดูเฉลย</summary>
+                        <p><span class="inline-code">home/kitchen/temp</span> ✅, <span class="inline-code">home/bedroom/temp</span> ✅ — แต่ไม่รับ <span class="inline-code">home/floor1/room2/temp</span> ❌ เพราะ <code>+</code> แทนได้แค่ 1 ระดับ</p>
+                    </details>
+                </div>
+
+                <div class="quiz-question">
+                    <strong>4.</strong> QoS ระดับ 2 แตกต่างจาก QoS 0 อย่างไร?
+                    <details>
+                        <summary>ดูเฉลย</summary>
+                        <p>QoS 0 ส่งครั้งเดียวโดยไม่ยืนยัน (อาจหาย) ส่วน QoS 2 ใช้ 4-way handshake เพื่อ <strong>รับประกันว่าข้อความถึงผู้รับครั้งเดียวเท่านั้น</strong> (Exactly once)</p>
+                    </details>
+                </div>
+
+                <div class="quiz-question">
+                    <strong>5.</strong> Retained Message และ Last Will and Testament (LWT) มีประโยชน์อย่างไร?
+                    <details>
+                        <summary>ดูเฉลย</summary>
+                        <p><strong>Retained Message</strong>: Subscriber ใหม่จะได้รับข้อมูลล่าสุดทันทีโดยไม่ต้องรอ Publisher ส่งใหม่<br>
+                        <strong>LWT</strong>: เมื่ออุปกรณ์หลุดออฟไลน์กะทันหัน Broker จะส่งข้อความที่กำหนดไว้ล่วงหน้าแทน ทำให้ระบบรู้ว่าอุปกรณ์ออฟไลน์</p>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary -->
+        <section id="summary">
+            <h2><span class="icon">🎓</span> สรุป</h2>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr><th>หัวข้อ</th><th>ความหมาย</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>MQTT</strong></td><td>โปรโตคอลน้ำหนักเบา Publish-Subscribe สำหรับ IoT</td></tr>
+                        <tr><td><strong>Broker</strong></td><td>ตัวกลางรับและกระจายข้อความ (เช่น Mosquitto)</td></tr>
+                        <tr><td><strong>Publisher</strong></td><td>อุปกรณ์ที่ส่งข้อมูลไปที่ Broker บน Topic</td></tr>
+                        <tr><td><strong>Subscriber</strong></td><td>อุปกรณ์ที่รับข้อมูลจาก Broker ตาม Topic ที่ Subscribe</td></tr>
+                        <tr><td><strong>Topic</strong></td><td>เส้นทางลำดับชั้นคั่นด้วย / เช่น home/room/temp</td></tr>
+                        <tr><td><strong>Wildcard + / #</strong></td><td>แทน 1 ระดับ / หลายระดับในการ Subscribe</td></tr>
+                        <tr><td><strong>QoS 0/1/2</strong></td><td>ระดับการรับประกัน: ไม่รับประกัน / อย่างน้อยครั้งเดียว / ครั้งเดียวพอดี</td></tr>
+                        <tr><td><strong>Retain</strong></td><td>เก็บข้อความล่าสุดไว้สำหรับ Subscriber ใหม่</td></tr>
+                        <tr><td><strong>LWT</strong></td><td>ข้อความที่ส่งอัตโนมัติเมื่ออุปกรณ์หลุดออฟไลน์</td></tr>
+                        <tr><td><strong>Port 1883/8883</strong></td><td>ไม่เข้ารหัส / เข้ารหัส TLS</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-box">
+                <strong>📚 แหล่งเรียนรู้เพิ่มเติม</strong>
+                <ul>
+                    <li><a href="https://mqtt.org/" style="color: var(--primary);">mqtt.org</a> — เว็บไซต์ทางการของ MQTT</li>
+                    <li><a href="https://mosquitto.org/" style="color: var(--primary);">mosquitto.org</a> — MQTT Broker โอเพนซอร์ส</li>
+                    <li><a href="https://pypi.org/project/paho-mqtt/" style="color: var(--primary);">paho-mqtt</a> — Python MQTT Client</li>
+                    <li><a href="https://www.geeksforgeeks.org/computer-networks/introduction-of-message-queue-telemetry-transport-protocol-mqtt/" style="color: var(--primary);">GeeksForGeeks: MQTT Introduction</a></li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 IoT Workshop - HTTP, FastAPI และ Arduino Nano 33 IoT</p>
+            <div class="footer-links">
+                <a href="lesson-01-introduction.html">บทที่ 1</a>
+                <a href="lesson-02-fastapi-server.html">บทที่ 2</a>
+                <a href="lesson-03-nano33iot-client.html">บทที่ 3</a>
+                <a href="lesson-04-motion-detection.html">บทที่ 4</a>
+                <a href="lesson-05-mqtt.html">บทที่ 5</a>
+            </div>
+            <p>Made with ❤️ for IoT Education</p>
+        </div>
+    </footer>
+
+</body>
+</html>

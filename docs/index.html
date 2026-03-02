@@ -140,6 +140,10 @@
             background: var(--accent);
         }
 
+        .lesson-card.purple .lesson-number {
+            background: #8b5cf6;
+        }
+
         .lesson-card h2 {
             font-size: 1.8rem;
             margin-bottom: 1rem;
@@ -152,6 +156,10 @@
 
         .lesson-card.accent h2 {
             color: var(--accent);
+        }
+
+        .lesson-card.purple h2 {
+            color: #8b5cf6;
         }
 
         .lesson-card p {
@@ -202,6 +210,14 @@
 
         .btn-accent {
             background: var(--accent);
+        }
+
+        .btn-purple {
+            background: #8b5cf6;
+        }
+
+        .btn-purple:hover {
+            background: #6d28d9;
         }
 
         /* Info Section */
@@ -339,6 +355,7 @@
                 <a href="lesson-02-fastapi-server.html">บทที่ 2</a>
                 <a href="lesson-03-nano33iot-client.html">บทที่ 3</a>
                 <a href="lesson-04-motion-detection.html">บทที่ 4</a>
+                <a href="lesson-05-mqtt.html">บทที่ 5</a>
             </div>
         </div>
     </div>
@@ -412,6 +429,21 @@
                         <li>แนะนำรันเป็น service (optional)</li>
                     </ul>
                     <a href="lesson-04-motion-detection.html" class="btn btn-secondary">เริ่มเรียน →</a>
+                </div>
+
+                <!-- Lesson 5 -->
+                <div class="lesson-card purple" onclick="window.location.href='lesson-05-mqtt.html'">
+                    <div class="lesson-number">5</div>
+                    <h2>MQTT Protocol</h2>
+                    <p>โปรโตคอลน้ำหนักเบาสำหรับ IoT — Publish, Subscribe, Broker</p>
+                    <ul class="lesson-topics">
+                        <li>Publish-Subscribe Architecture</li>
+                        <li>Broker, Publisher, Subscriber</li>
+                        <li>Topics & Wildcards (+ / #)</li>
+                        <li>Quality of Service (QoS 0/1/2)</li>
+                        <li>Retain, LWT, Security</li>
+                    </ul>
+                    <a href="lesson-05-mqtt.html" class="btn btn-purple">เริ่มเรียน →</a>
                 </div>
 
             </div>
@@ -502,6 +534,7 @@
                 <a href="lesson-02-fastapi-server.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">บทที่ 2</a>
                 <a href="lesson-03-nano33iot-client.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">บทที่ 3</a>
                 <a href="lesson-04-motion-detection.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">บทที่ 4</a>
+                <a href="lesson-05-mqtt.html" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">บทที่ 5</a>
             </div>
 <p>Made with ❤️ for IoT Education</p>
         </div>
